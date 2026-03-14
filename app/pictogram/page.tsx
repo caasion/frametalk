@@ -777,7 +777,7 @@ function OutputScreen({
 
         {/* Contextual illustration */}
         {!loading && (isImageLoading || imageSrc || imageError) && (
-          <div className="h-40 w-40 overflow-hidden rounded-[22px] border border-(--line-soft) bg-[linear-gradient(130deg,#e2f2c7,#d8efe1)] shadow-[0_8px_18px_rgba(7,70,43,0.09)]">
+          <div className="h-64 w-64 overflow-hidden rounded-[22px] border border-(--line-soft) bg-[linear-gradient(130deg,#e2f2c7,#d8efe1)] shadow-[0_8px_18px_rgba(7,70,43,0.09)]">
             {isImageLoading && (
               <div className="h-full w-full animate-pulse rounded-[22px] bg-[linear-gradient(130deg,#e2f2c7,#d8efe1)]" />
             )}
