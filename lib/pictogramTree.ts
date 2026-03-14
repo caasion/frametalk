@@ -130,7 +130,7 @@ const emergencyChildren: PictogramNode[] = [
 const groceryShopping: PictogramNode[] = [
   { id: "groc-where", label: "Where is this?", arasaacKeyword: "where", arasaacId: 32872, llmContext: "The user is at a shop and needs help finding a specific item." },
   directAction("groc-price", "How much?",       "price",    "The user wants to know the price of an item."),
-  directAction("groc-halal", "Is this halal?",  "question", "The user is asking if a specific food item is certified Halal."),
+  { id: "groc-halal", label: "Is this halal?", arasaacKeyword: "question", arasaacId: 38794, llmContext: "The user is asking if a specific food item is certified Halal." },
 ];
 
 const foodNeedsCaseworker: PictogramNode[] = [
