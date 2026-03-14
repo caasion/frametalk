@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useRef, useState } from "react";
+import Link from "next/link";
 import DesktopLayout from "@/components/DesktopLayout";
 
 // ─── Icons ────────────────────────────────────────────────────────────────────
@@ -38,6 +39,17 @@ function IconChevron() {
   return (
     <svg className="h-[13px] w-[13px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
       <polyline points="9 18 15 12 9 6" />
+    </svg>
+  );
+}
+
+function IconGrid() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5">
+      <rect x="3" y="3" width="7" height="7" />
+      <rect x="14" y="3" width="7" height="7" />
+      <rect x="3" y="14" width="7" height="7" />
+      <rect x="14" y="14" width="7" height="7" />
     </svg>
   );
 }
@@ -132,6 +144,20 @@ export default function UploadScreen() {
           <IconCamera />
           Use camera
         </button>
+
+        <div className="flex items-center gap-2">
+          <div className="h-px flex-1 bg-[#d3d1c7]" />
+          <div className="text-[10px] font-semibold text-[#888780]">or</div>
+          <div className="h-px flex-1 bg-[#d3d1c7]" />
+        </div>
+
+        <Link
+          href="/pictogram"
+          className="flex w-full items-center justify-center gap-[7px] rounded-[12px] bg-[#0F6E56] px-[14px] py-[11px] text-[13px] font-bold text-white transition-opacity hover:opacity-90"
+        >
+          <IconGrid />
+          Use pictograms
+        </Link>
 
         <div className="flex cursor-pointer items-center gap-2 rounded-[12px] bg-[#E1F5EE] px-3 py-2.5">
           <div className="flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-full bg-[#1D9E75]">
