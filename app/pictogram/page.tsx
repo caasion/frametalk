@@ -831,9 +831,10 @@ export default function PictogramPage() {
     speak(node.label, { rate: 0.9, pitch: 1 });
     const newTrail = [...trail, node];
     setTrail(newTrail);
-    // Auto-navigate when we have enough to generate
-    const newIsLeaf = !node.children;
-    if (newIsLeaf || newTrail.length >= 3) {
+    
+    // Auto-navigate when there are no more options to choose from
+    const newIsLeaf = !node.children || node.children.length === 0;
+    if (newIsLeaf) {
       setShowOutput(true);
     }
   };
