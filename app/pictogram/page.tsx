@@ -4,6 +4,7 @@ import React, { useState, useCallback, useEffect } from "react";
 import DesktopLayout from "@/components/DesktopLayout";
 import { pictogramTree, PictogramNode } from "@/lib/pictogramTree";
 import { useArasaacImage } from "@/lib/useArasaacImage";
+import { useSpeech } from "@/hooks/useSpeech";
 
 // ─── Steps for this flow ──────────────────────────────────────────────────────
 
@@ -222,25 +223,14 @@ function OutputScreen({
     fetchSentence();
   }, [fetchSentence]);
 
+  const { speak } = useSpeech();
+
   // Auto-speak when sentence arrives
   useEffect(() => {
-    if (sentence && typeof window !== "undefined" && window.speechSynthesis) {
-      const utterance = new SpeechSynthesisUtterance(sentence);
-      utterance.rate = 0.85;
-      utterance.pitch = 1;
-      window.speechSynthesis.speak(utterance);
+    if (sentence) {
+      speak(sentence, { rate: 0.85, pitch: 1 });
     }
-  }, [sentence]);
-
-  const speak = () => {
-    if (sentence && typeof window !== "undefined" && window.speechSynthesis) {
-      window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(sentence);
-      utterance.rate = 0.85;
-      utterance.pitch = 1;
-      window.speechSynthesis.speak(utterance);
-    }
-  };
+  }, [sentence, speak]);
 
   return (
     <div className="flex h-full flex-col">
@@ -269,7 +259,7 @@ function OutputScreen({
         {/* Action buttons */}
         <div className="flex items-center gap-3">
           <button
-            onClick={speak}
+            onClick={() => sentence && speak(sentence, { rate: 0.85, pitch: 1 })}
             disabled={loading}
             className="flex h-12 w-12 cursor-pointer items-center justify-center rounded-full bg-[#E1F5EE] text-[#0F6E56] transition-colors hover:bg-[#d0ede2] disabled:opacity-50"
           >
