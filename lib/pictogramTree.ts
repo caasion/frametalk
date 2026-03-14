@@ -10,7 +10,7 @@ export type PictogramNode = {
 // ─── WHO selector (final level on relevant paths) ────────────────────────────
 
 const whoIsThis: PictogramNode[] = [
-  { id: "who-me",     label: "Me",           arasaacKeyword: "myself", llmContext: "The subject of the request is the speaker." },
+  { id: "who-me",     label: "Me",           arasaacKeyword: "myself", arasaacId: 6632, llmContext: "The subject of the request is the speaker." },
   { id: "who-mother", label: "My mother",    arasaacKeyword: "mother", llmContext: "The subject of the request is the speaker's mother." },
   { id: "who-father", label: "My father",    arasaacKeyword: "father", llmContext: "The subject of the request is the speaker's father." },
   { id: "who-child",  label: "My child",     arasaacKeyword: "child",  llmContext: "The subject of the request is the speaker's child." },
