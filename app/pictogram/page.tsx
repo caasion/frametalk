@@ -443,13 +443,12 @@ function SpeechPractice({
         {words.map((_, i) => (
           <div
             key={i}
-            className={`rounded-full transition-all duration-300 ${
-              i < wordIndex
+            className={`rounded-full transition-all duration-300 ${i < wordIndex
                 ? "h-3 w-8 bg-[#1a9a68]"
                 : i === wordIndex
-                ? "h-3 w-8 bg-[#1a9a68]/60 ring-2 ring-[#1a9a68]/30"
-                : "h-3 w-3 bg-[linear-gradient(130deg,#e2f2c7,#d8efe1)]"
-            }`}
+                  ? "h-3 w-8 bg-[#1a9a68]/60 ring-2 ring-[#1a9a68]/30"
+                  : "h-3 w-3 bg-[linear-gradient(130deg,#e2f2c7,#d8efe1)]"
+              }`}
           />
         ))}
       </div>
@@ -483,11 +482,10 @@ function SpeechPractice({
                 <button
                   key={i}
                   onClick={() => setSpeakPass(i)}
-                  className={`rounded-2xl p-2 text-4xl transition-all duration-150 hover:scale-125 hover:opacity-100 active:scale-95 ${
-                    i === speakPass
+                  className={`rounded-2xl p-2 text-4xl transition-all duration-150 hover:scale-125 hover:opacity-100 active:scale-95 ${i === speakPass
                       ? "opacity-100 bg-[#1a9a68]/10 ring-2 ring-[#1a9a68]/30"
                       : "opacity-30"
-                  }`}
+                    }`}
                 >
                   {emoji}
                 </button>
@@ -517,13 +515,12 @@ function SpeechPractice({
               title="Hold to say it"
               disabled={recordingState === "processing"}
               style={{ touchAction: "none" }}
-              className={`relative flex h-28 w-28 items-center justify-center rounded-full border-2 transition-all ${
-                recordingState === "recording"
+              className={`relative flex h-28 w-28 items-center justify-center rounded-full border-2 transition-all ${recordingState === "recording"
                   ? "scale-110 border-red-400 bg-[linear-gradient(145deg,#dc2626,#991b1b)] shadow-[0_12px_32px_rgba(220,38,38,0.4)]"
                   : recordingState === "processing"
-                  ? "cursor-wait border-amber-400 bg-[linear-gradient(145deg,#d97706,#92400e)] opacity-70 shadow-[0_12px_32px_rgba(217,119,6,0.4)]"
-                  : "border-(--gold-500) bg-[linear-gradient(145deg,#1a9a68,#14714f)] shadow-[0_12px_32px_rgba(7,70,43,0.3)] hover:-translate-y-1 hover:shadow-[0_16px_36px_rgba(7,70,43,0.35)]"
-              }`}
+                    ? "cursor-wait border-amber-400 bg-[linear-gradient(145deg,#d97706,#92400e)] opacity-70 shadow-[0_12px_32px_rgba(217,119,6,0.4)]"
+                    : "border-(--gold-500) bg-[linear-gradient(145deg,#1a9a68,#14714f)] shadow-[0_12px_32px_rgba(7,70,43,0.3)] hover:-translate-y-1 hover:shadow-[0_16px_36px_rgba(7,70,43,0.35)]"
+                }`}
             >
               {recordingState === "recording" && (
                 <span
@@ -732,19 +729,21 @@ function OutputScreen({
             <IconRefresh />
           </button>
         </div>
-      </div>
 
-      <div className="mt-auto flex flex-col gap-2.5 p-3">
-        <TrailChips trail={trail} />
+        {/* Practice speaking – circular, centred below sentence */}
         <button
           onClick={() => setShowPractice(true)}
           disabled={loading || wordPictograms.length === 0}
           title="Practice speaking"
           aria-label="Practice speaking"
-          className="flex w-full cursor-pointer items-center justify-center rounded-[14px] border border-(--gold-500) bg-[linear-gradient(145deg,#1a9a68,#14714f)] py-3 text-white shadow-[0_10px_20px_rgba(7,70,43,0.2)] transition-all hover:-translate-y-0.5 disabled:opacity-50"
+          className="flex h-20 w-20 items-center justify-center rounded-full border-2 border-(--gold-500) bg-[linear-gradient(145deg,#1a9a68,#14714f)] shadow-[0_12px_32px_rgba(7,70,43,0.3)] transition-all hover:-translate-y-1 hover:shadow-[0_16px_36px_rgba(7,70,43,0.35)] disabled:border-slate-300 disabled:bg-slate-200 disabled:shadow-none"
         >
-          <IconMic />
+          <Speech size={36} color="white" strokeWidth={1.5} />
         </button>
+      </div>
+
+      <div className="mt-auto p-3">
+        <TrailChips trail={trail} />
       </div>
     </div>
   );
@@ -819,8 +818,8 @@ export default function PictogramPage() {
         )}
 
         <div className="relative z-10 flex-1 overflow-y-auto">
-            <TileGrid nodes={currentNodes} onTap={handleTileTap} />
-          </div>
+          <TileGrid nodes={currentNodes} onTap={handleTileTap} />
+        </div>
 
         <div className="relative z-10 mt-auto border-t border-(--line-soft) bg-white/90 p-3 backdrop-blur-sm">
           {trail.length > 0 && !isLeaf ? <TrailChips trail={trail} /> : trail.length === 0 ? <div className="h-12" /> : null}
