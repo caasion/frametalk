@@ -198,7 +198,7 @@ function TrailChips({
           <div
             className="flex w-full items-center justify-center bg-[radial-gradient(circle_at_30%_20%,#e4f4ce,#d8efe1)] p-1.5"
           >
-            <PictogramImage keyword={node.arasaacKeyword} size={imgSize} />
+            <PictogramImage keyword={node.arasaacKeyword} preferredId={node.arasaacId} size={imgSize} />
           </div>
           <div className="w-full px-1 py-1 text-center text-[10px] font-semibold leading-tight text-(--green-800)">
             {node.label}
@@ -753,6 +753,7 @@ function OutputScreen({
 export default function PictogramPage() {
   const [trail, setTrail] = useState<PictogramNode[]>([]);
   const [showOutput, setShowOutput] = useState(false);
+  const { speak } = useSpeech();
 
   const currentNodes = (() => {
     if (trail.length === 0) return pictogramTree;
@@ -761,6 +762,7 @@ export default function PictogramPage() {
   })();
 
   const handleTileTap = (node: PictogramNode) => {
+    speak(node.label, { rate: 0.9, pitch: 1 });
     const newTrail = [...trail, node];
     setTrail(newTrail);
   };
