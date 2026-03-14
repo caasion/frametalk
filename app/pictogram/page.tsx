@@ -11,17 +11,9 @@ import {
   WordPictogram,
 } from "@/lib/resolveArasaacImages";
 
-function IconChevronSmall() {
-  return (
-    <svg className="h-3 w-3 shrink-0 text-(--gold-200)" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-      <polyline points="9 18 15 12 9 6" />
-    </svg>
-  );
-}
-
 function IconCheck() {
   return (
-    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+    <svg className="h-7 w-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
       <polyline points="20 6 9 17 4 12" />
     </svg>
   );
@@ -100,40 +92,6 @@ function PictogramImage({ keyword, size = 56 }: { keyword: string; size?: number
   );
 }
 
-// ─── Breadcrumb ───────────────────────────────────────────────────────────────
-
-function Breadcrumb({
-  trail,
-  onTap,
-}: {
-  trail: PictogramNode[];
-  onTap: (index: number) => void;
-}) {
-  if (trail.length === 0) {
-    return <div className="h-10" />;
-  }
-
-  return (
-    <div className="no-scrollbar flex h-10 items-center gap-1 overflow-x-auto">
-      {trail.map((node, i) => (
-        <React.Fragment key={node.id}>
-          {i > 0 && <IconChevronSmall />}
-          <button
-            onClick={() => onTap(i)}
-            className="shrink-0 cursor-pointer rounded-full border border-(--line-soft) bg-white/90 px-1.5 py-0.5 transition-all hover:-translate-y-0.5 hover:border-(--gold-500)"
-            aria-label={`Go to ${node.label}`}
-          >
-            <span className="flex items-center gap-1.5">
-              <PictogramImage keyword={node.arasaacKeyword} size={30} />
-              <span className="text-[10px] font-semibold text-(--green-800)">{node.label}</span>
-            </span>
-          </button>
-        </React.Fragment>
-      ))}
-    </div>
-  );
-}
-
 // ─── Tile grid ────────────────────────────────────────────────────────────────
 
 function PictogramTile({
@@ -178,16 +136,28 @@ function TileGrid({
 
 // ─── Trail chips ──────────────────────────────────────────────────────────────
 
-function TrailChips({ trail }: { trail: PictogramNode[] }) {
+function TrailChips({
+  trail,
+  size = "default",
+}: {
+  trail: PictogramNode[];
+  size?: "default" | "large";
+}) {
+  const isLarge = size === "large";
+
   return (
-    <div className="flex flex-wrap items-center justify-center gap-1.5 px-3">
+    <div className={`flex flex-wrap items-center justify-center ${isLarge ? "gap-2.5 px-4" : "gap-2 px-3"}`}>
       {trail.map((node) => (
         <div
           key={node.id}
-          className="flex items-center gap-1 rounded-full border border-(--line-soft) bg-white px-2 py-1"
+          className={`flex items-center rounded-2xl border border-(--line-soft) bg-white shadow-[0_4px_10px_rgba(7,70,43,0.08)] ${
+            isLarge ? "gap-2 px-4 py-2.5" : "gap-1.5 px-3 py-2"
+          }`}
         >
-          <PictogramImage keyword={node.arasaacKeyword} size={18} />
-          <span className="text-[10px] font-semibold text-(--green-800)">{node.label}</span>
+          <PictogramImage keyword={node.arasaacKeyword} size={isLarge ? 40 : 28} />
+          <span className={isLarge ? "text-[13px] font-semibold text-(--green-800)" : "text-[12px] font-semibold text-(--green-800)"}>
+            {node.label}
+          </span>
         </div>
       ))}
     </div>
@@ -573,10 +543,6 @@ function OutputScreen({
 
   return (
     <div className="flex h-full flex-col bg-[linear-gradient(170deg,#edf8dc_0%,#f9fff4_45%,#ffffff_100%)]">
-      <div className="px-4 pb-3 pt-4">
-        <Breadcrumb trail={trail} onTap={() => {}} />
-      </div>
-
       <div className="flex flex-1 flex-col items-center justify-center gap-5 p-6">
         {loading ? (
           <div className="flex flex-col items-center gap-3">
@@ -610,6 +576,7 @@ function OutputScreen({
       </div>
 
       <div className="mt-auto flex flex-col gap-2.5 p-3">
+        <TrailChips trail={trail} />
         <button
           onClick={onBack}
           className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-[14px] border border-(--line-soft) bg-white px-4 py-3 text-[12px] font-semibold text-(--green-800) transition-colors hover:bg-(--surface-soft)"
@@ -645,10 +612,6 @@ export default function PictogramPage() {
     setTrail(newTrail);
   };
 
-  const handleBreadcrumbTap = (index: number) => {
-    setTrail(trail.slice(0, index + 1));
-  };
-
   const handleGoBack = () => {
     if (trail.length > 0) {
       setTrail(trail.slice(0, -1));
@@ -672,26 +635,21 @@ export default function PictogramPage() {
         <div className="pointer-events-none absolute inset-x-0 top-0 h-20 bg-[linear-gradient(180deg,rgba(20,113,79,0.08),rgba(20,113,79,0))]" />
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-[linear-gradient(0deg,rgba(183,146,44,0.1),rgba(183,146,44,0))]" />
 
-        <div className="relative z-10 px-4 pb-3 pt-4">
-          <Breadcrumb trail={trail} onTap={handleBreadcrumbTap} />
-        </div>
-
-        {trail.length > 0 && (
-          <button
-            onClick={handleGoBack}
-            className="relative z-10 ml-4 flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border border-(--line-soft) bg-white text-(--green-700) transition-all hover:-translate-y-0.5 hover:border-(--gold-500)"
-            aria-label="Back"
-          >
-            <IconBack />
-          </button>
-        )}
+        <button
+          onClick={handleGoBack}
+          disabled={trail.length === 0}
+          className="relative z-10 ml-4 mt-4 flex h-9 w-9 items-center justify-center rounded-full border border-(--line-soft) bg-white text-(--green-700) transition-all hover:-translate-y-0.5 hover:border-(--gold-500) disabled:cursor-default disabled:opacity-65 disabled:hover:translate-y-0 disabled:hover:border-(--line-soft)"
+          aria-label="Back"
+        >
+          <IconBack />
+        </button>
 
         {isLeaf ? (
-          <div className="flex flex-1 flex-col items-center justify-center gap-3 p-6">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full border border-(--gold-500) bg-white text-(--green-700) shadow-[0_10px_20px_rgba(7,70,43,0.12)]">
+          <div className="flex flex-1 flex-col items-center justify-center gap-4 p-6">
+            <div className="flex h-16 w-16 items-center justify-center rounded-full border border-(--gold-500) bg-white text-(--green-700) shadow-[0_12px_24px_rgba(7,70,43,0.16)]">
               <IconCheck />
             </div>
-            <TrailChips trail={trail} />
+            <TrailChips trail={trail} size="large" />
           </div>
         ) : (
           <div className="relative z-10 flex-1 overflow-y-auto">
@@ -699,18 +657,17 @@ export default function PictogramPage() {
           </div>
         )}
 
-        {canGenerate && (
-          <div className="relative z-10 mt-auto border-t border-(--line-soft) bg-white/90 p-3 backdrop-blur-sm">
-            <TrailChips trail={trail} />
-            <button
-              onClick={() => setShowOutput(true)}
-              className="mt-2.5 flex w-full cursor-pointer items-center justify-center gap-2 rounded-[14px] border border-(--gold-500) bg-[linear-gradient(145deg,#1a9a68,#14714f)] px-4 py-3 text-[13px] font-semibold text-white shadow-[0_10px_20px_rgba(7,70,43,0.2)] transition-all hover:-translate-y-0.5"
-            >
-              <IconPlay />
-              <span>Speak</span>
-            </button>
-          </div>
-        )}
+        <div className="relative z-10 mt-auto border-t border-(--line-soft) bg-white/90 p-3 backdrop-blur-sm">
+          {trail.length > 0 && !isLeaf ? <TrailChips trail={trail} /> : trail.length === 0 ? <div className="h-[48px]" /> : null}
+          <button
+            onClick={() => setShowOutput(true)}
+            disabled={!canGenerate}
+            className="mt-2.5 flex w-full items-center justify-center gap-2 rounded-[14px] border border-(--gold-500) bg-[linear-gradient(145deg,#1a9a68,#14714f)] px-4 py-3 text-[13px] font-semibold text-white shadow-[0_10px_20px_rgba(7,70,43,0.2)] transition-all hover:-translate-y-0.5 disabled:cursor-default disabled:border-slate-300 disabled:bg-slate-100 disabled:text-slate-700 disabled:shadow-none disabled:hover:translate-y-0 disabled:hover:border-slate-300"
+          >
+            <IconPlay />
+            <span>Speak</span>
+          </button>
+        </div>
       </div>
     </DesktopLayout>
   );

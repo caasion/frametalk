@@ -111,3 +111,32 @@ body.app-body {
   border-color: var(--gold-500);
   box-shadow: 0 16px 24px rgba(7, 70, 43, 0.14), 0 0 0 1px rgba(183, 146, 44, 0.22) inset;
 }
+
+/* Custom scrollbar matching app theme */
+.styled-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: var(--gold-300) transparent;
+}
+
+.styled-scrollbar::-webkit-scrollbar {
+  height: 6px;
+  width: 6px;
+  background-color: transparent;
+}
+
+.styled-scrollbar::-webkit-scrollbar-thumb {
+  background-color: var(--gold-300);
+  border-radius: 99px;
+}
+
+.styled-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: var(--gold-500);
+}
+
+.styled-scrollbar::-webkit-scrollbar-track {
+  background-color: var(--line-soft);
+  border-radius: 99px;
+  background-clip: content-box;
+  border: 1px solid transparent; /* Gives a little buffer visually if needed */
+}
+
