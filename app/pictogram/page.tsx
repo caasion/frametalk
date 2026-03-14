@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback, useEffect, useRef } from "react";
 import DesktopLayout from "@/components/DesktopLayout";
 import { pictogramTree, PictogramNode } from "@/lib/pictogramTree";
 import { useArasaacImage } from "@/lib/useArasaacImage";
@@ -228,8 +228,12 @@ function OutputScreen({
     }
   }, [trail]);
 
+  const fetchedRef = useRef(false);
+
   // Fetch on mount
   useEffect(() => {
+    if (fetchedRef.current) return;
+    fetchedRef.current = true;
     fetchSentence();
   }, [fetchSentence]);
 
