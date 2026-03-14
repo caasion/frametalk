@@ -10,7 +10,7 @@ import {
   resolveArasaacImages,
   WordPictogram,
 } from "@/lib/resolveArasaacImages";
-import { Mic2, Speech } from "lucide-react";
+import { Mic2, Speech, ArrowRight, RotateCcw, ArrowRightToLine, Check, X } from "lucide-react";
 import { WavRecorder } from "@/lib/wavRecorder";
 
 function IconCheck() {
@@ -456,12 +456,12 @@ function SpeechPractice({
 
       <div className="flex flex-1 flex-col items-center justify-center gap-5 p-6">
         {/* Pictogram */}
-        <div className="flex h-36 w-36 items-center justify-center rounded-3xl border-2 border-(--line-soft) bg-[radial-gradient(circle_at_30%_20%,#e4f4ce,#d8efe1)]">
+        <div className="flex h-44 w-44 items-center justify-center rounded-3xl border-2 border-(--line-soft) bg-[radial-gradient(circle_at_30%_20%,#e4f4ce,#d8efe1)]">
           {currentWord.imageUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={currentWord.imageUrl} alt={currentWord.label} className="h-24 w-24 object-contain" />
+            <img src={currentWord.imageUrl} alt={currentWord.label} className="h-36 w-36 object-contain" />
           ) : (
-            <span className="text-4xl font-extrabold text-(--green-700)">{currentWord.label}</span>
+            <span className="text-5xl font-extrabold text-(--green-700)">{currentWord.label}</span>
           )}
         </div>
 
@@ -541,38 +541,52 @@ function SpeechPractice({
 
         {/* Result phase */}
         {phase === "result" && wordResult && (
-          <div className="flex w-full flex-col items-center gap-4">
+          <div className="flex w-full flex-col items-center gap-6">
             {wordResult.accuracy_score >= 70 ? (
               <>
-                <div className="text-5xl">✅</div>
-                <div className="text-xl font-extrabold text-(--green-700)">Well done!</div>
-                <div className="text-[13px] font-semibold text-(--green-600)">{wordResult.accuracy_score}% correct</div>
+                {/* Success card */}
+                <div className="relative inline-flex items-center justify-center rounded-3xl border-2 border-[#d1fae5] bg-[linear-gradient(135deg,#ecfdf5,#ffffff)] p-6 shadow-[0_8px_24px_rgba(7,70,43,0.1)]">
+                  <span className="text-7xl">😊</span>
+                  <div className="absolute -bottom-3 -right-3 flex h-10 w-10 items-center justify-center rounded-full border-2 border-white bg-[#1a9a68] shadow-md">
+                    <Check size={20} color="white" strokeWidth={3} />
+                  </div>
+                </div>
                 <button
                   onClick={handleNext}
-                  className="w-full max-w-xs rounded-[14px] border border-(--gold-500) bg-[linear-gradient(145deg,#1a9a68,#14714f)] px-4 py-3 text-[13px] font-semibold text-white shadow-[0_10px_20px_rgba(7,70,43,0.2)] transition-all hover:-translate-y-0.5"
+                  aria-label={wordIndex < words.length - 1 ? "Next word" : "Finish"}
+                  title={wordIndex < words.length - 1 ? "Next word" : "Finish"}
+                  className="flex h-24 w-24 items-center justify-center rounded-full border-2 border-(--gold-500) bg-[linear-gradient(145deg,#1a9a68,#14714f)] shadow-[0_12px_32px_rgba(7,70,43,0.3)] transition-all hover:-translate-y-1 hover:shadow-[0_16px_36px_rgba(7,70,43,0.35)]"
                 >
-                  {wordIndex < words.length - 1 ? "Next word →" : "Finish!"}
+                  <ArrowRight size={48} color="white" strokeWidth={2} />
                 </button>
               </>
             ) : (
               <>
-                <div className="text-5xl">🔄</div>
-                <div className="text-xl font-extrabold text-(--green-700)">Try again!</div>
-                <div className="text-[13px] font-semibold text-(--green-600)">
-                  {wordResult.is_omitted ? "Not heard" : `${wordResult.accuracy_score}% correct`}
+                {/* Failure card */}
+                <div className="relative inline-flex items-center justify-center rounded-3xl border-2 border-[#fecaca] bg-[linear-gradient(135deg,#fef2f2,#ffffff)] p-6 shadow-[0_8px_24px_rgba(220,38,38,0.08)]">
+                  <span className="text-7xl">😢</span>
+                  <div className="absolute -bottom-3 -right-3 flex h-10 w-10 items-center justify-center rounded-full border-2 border-white bg-red-500 shadow-md">
+                    <X size={20} color="white" strokeWidth={3} />
+                  </div>
                 </div>
-                <button
-                  onClick={handleRetry}
-                  className="w-full max-w-xs rounded-[14px] border border-(--gold-500) bg-[linear-gradient(145deg,#1a9a68,#14714f)] px-4 py-3 text-[13px] font-semibold text-white shadow-[0_10px_20px_rgba(7,70,43,0.2)] transition-all hover:-translate-y-0.5"
-                >
-                  Try again
-                </button>
-                <button
-                  onClick={handleNext}
-                  className="cursor-pointer text-[11px] font-semibold text-(--green-600)/70 underline underline-offset-2"
-                >
-                  Skip →
-                </button>
+                <div className="flex flex-col items-center gap-5">
+                  <button
+                    onClick={handleRetry}
+                    aria-label="Try again"
+                    title="Try again"
+                    className="flex h-24 w-24 items-center justify-center rounded-full border-2 border-(--gold-500) bg-[linear-gradient(145deg,#1a9a68,#14714f)] shadow-[0_12px_32px_rgba(7,70,43,0.3)] transition-all hover:-translate-y-1 hover:shadow-[0_16px_36px_rgba(7,70,43,0.35)]"
+                  >
+                    <RotateCcw size={40} color="white" strokeWidth={2} />
+                  </button>
+                  <button
+                    onClick={handleNext}
+                    aria-label="Skip"
+                    title="Skip"
+                    className="flex h-16 w-16 items-center justify-center rounded-full border-2 border-(--line-soft) bg-white text-(--green-700) shadow-[0_8px_24px_rgba(7,70,43,0.12)] transition-all hover:-translate-y-1 hover:border-(--gold-500)"
+                  >
+                    <ArrowRightToLine size={28} strokeWidth={2} />
+                  </button>
+                </div>
               </>
             )}
           </div>
