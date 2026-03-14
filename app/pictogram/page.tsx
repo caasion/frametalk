@@ -5,6 +5,11 @@ import DesktopLayout from "@/components/DesktopLayout";
 import { pictogramTree, PictogramNode } from "@/lib/pictogramTree";
 import { useArasaacImage } from "@/lib/useArasaacImage";
 import { useSpeech } from "@/hooks/useSpeech";
+import AudioRecorder from "@/components/AudioRecorder";
+import {
+  resolveArasaacImages,
+  WordPictogram,
+} from "@/lib/resolveArasaacImages";
 
 function IconChevronSmall() {
   return (
@@ -189,6 +194,320 @@ function TrailChips({ trail }: { trail: PictogramNode[] }) {
   );
 }
 
+// ─── Speech evaluation types ──────────────────────────────────────────────────
+
+interface EvaluationWord {
+  word: string;
+  accuracy_score: number;
+  is_omitted: boolean;
+}
+
+interface EvaluationResult {
+  target: string;
+  overall_accuracy: number;
+  words: EvaluationWord[];
+}
+
+// ─── Speech helpers ───────────────────────────────────────────────────────────
+
+// Each repetition gets slower and more emphatic
+const SPEECH_PASSES = [
+  { rate: 0.4, pitch: 1.2 },
+  { rate: 0.2, pitch: 1.1 },
+  { rate: 0.1, pitch: 1.0 },
+];
+
+function speakAt(text: string, rate: number, pitch: number): Promise<void> {
+  return new Promise((resolve) => {
+    if (typeof window === "undefined" || !window.speechSynthesis) { resolve(); return; }
+    window.speechSynthesis.cancel();
+    const utt = new SpeechSynthesisUtterance(text);
+    utt.rate = rate; utt.pitch = pitch; utt.volume = 1; utt.lang = "en-US";
+    utt.onend = () => resolve(); utt.onerror = () => resolve();
+    window.speechSynthesis.speak(utt);
+  });
+}
+
+function msDelay(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+// ─── Word-by-word speech practice ────────────────────────────────────────────
+
+type WordPhase = "teaching" | "pronounce" | "result";
+
+function SpeechPractice({
+  words,
+  onBack,
+}: {
+  words: WordPictogram[];
+  onBack: () => void;
+}) {
+  const [wordIndex, setWordIndex] = useState(0);
+  const [phase, setWordPhase] = useState<WordPhase>("teaching");
+  const [wordResult, setWordResult] = useState<EvaluationWord | null>(null);
+  const [allDone, setAllDone] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [speakPass, setSpeakPass] = useState(0);
+  const cancelledRef = useRef(false);
+
+  const currentWord = words[wordIndex];
+  // Single-letter "I" gets a period so TTS doesn't spell it out
+  const ttsText = currentWord.label === "I" ? "I." : currentWord.label;
+
+  const playWordSlowly = useCallback(async () => {
+    if (isSpeaking) return;
+    cancelledRef.current = false;
+    setIsSpeaking(true);
+    for (let i = 0; i < SPEECH_PASSES.length; i++) {
+      if (cancelledRef.current) break;
+      setSpeakPass(i);
+      const { rate, pitch } = SPEECH_PASSES[i];
+      await speakAt(ttsText, rate, pitch);
+      if (i < SPEECH_PASSES.length - 1 && !cancelledRef.current) await msDelay(1800);
+    }
+    setIsSpeaking(false);
+  }, [ttsText, isSpeaking]);
+
+  // Auto-play when entering teaching phase
+  useEffect(() => {
+    if (phase !== "teaching") return;
+    let isCancelled = false;
+    cancelledRef.current = false;
+    const run = async () => {
+      setIsSpeaking(true);
+      await msDelay(400);
+      for (let i = 0; i < SPEECH_PASSES.length; i++) {
+        if (isCancelled || cancelledRef.current) break;
+        setSpeakPass(i);
+        const { rate, pitch } = SPEECH_PASSES[i];
+        await speakAt(ttsText, rate, pitch);
+        if (i < SPEECH_PASSES.length - 1 && !isCancelled && !cancelledRef.current) {
+          await msDelay(1800);
+        }
+      }
+      if (!isCancelled) setIsSpeaking(false);
+    };
+    run();
+    return () => {
+      isCancelled = true;
+      cancelledRef.current = true;
+      window.speechSynthesis?.cancel();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [wordIndex, phase]);
+
+  const handleResult = useCallback((result: EvaluationResult) => {
+    setWordResult(result.words[0] ?? null);
+    setError(null);
+    setWordPhase("result");
+  }, []);
+
+  const handleNext = useCallback(() => {
+    cancelledRef.current = true;
+    window.speechSynthesis?.cancel();
+    if (wordIndex < words.length - 1) {
+      setWordIndex((i) => i + 1);
+      setWordResult(null);
+      setError(null);
+      setWordPhase("teaching");
+    } else {
+      setAllDone(true);
+    }
+  }, [wordIndex, words.length]);
+
+  const handleRetry = useCallback(() => {
+    setWordResult(null);
+    setError(null);
+    setWordPhase("teaching");
+  }, []);
+
+  // ── All done ─────────────────────────────────────────────────────────────
+
+  if (allDone) {
+    return (
+      <div className="flex h-full flex-col items-center justify-center gap-6 bg-[linear-gradient(170deg,#edf8dc_0%,#f9fff4_45%,#ffffff_100%)] p-6">
+        <div className="text-6xl">🎉</div>
+        <div className="text-2xl font-extrabold text-(--green-700)">Great job!</div>
+        <div className="text-[13px] font-semibold text-(--green-600)">You said all the words!</div>
+        <button
+          onClick={onBack}
+          className="w-full max-w-xs rounded-[14px] border border-(--gold-500) bg-[linear-gradient(145deg,#1a9a68,#14714f)] px-4 py-3 text-[13px] font-semibold text-white shadow-[0_10px_20px_rgba(7,70,43,0.2)] transition-all hover:-translate-y-0.5"
+        >
+          Back to sentence
+        </button>
+      </div>
+    );
+  }
+
+  // ── Main practice screen ──────────────────────────────────────────────────
+
+  return (
+    <div className="flex h-full flex-col bg-[linear-gradient(170deg,#edf8dc_0%,#f9fff4_45%,#ffffff_100%)]">
+      {/* Progress dots */}
+      <div className="flex justify-center gap-2 px-4 pt-5">
+        {words.map((_, i) => (
+          <div
+            key={i}
+            className={`rounded-full transition-all duration-300 ${
+              i < wordIndex
+                ? "h-3 w-8 bg-[#1a9a68]"
+                : i === wordIndex
+                ? "h-3 w-8 bg-[#1a9a68]/60 ring-2 ring-[#1a9a68]/30"
+                : "h-3 w-3 bg-[linear-gradient(130deg,#e2f2c7,#d8efe1)]"
+            }`}
+          />
+        ))}
+      </div>
+
+      <div className="flex flex-1 flex-col items-center justify-center gap-5 p-6">
+        {/* Pictogram */}
+        <div className="flex h-36 w-36 items-center justify-center rounded-3xl border-2 border-(--line-soft) bg-[radial-gradient(circle_at_30%_20%,#e4f4ce,#d8efe1)]">
+          {currentWord.imageUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={currentWord.imageUrl} alt={currentWord.label} className="h-24 w-24 object-contain" />
+          ) : (
+            <span className="text-4xl font-extrabold text-(--green-700)">{currentWord.label}</span>
+          )}
+        </div>
+
+        {/* Word */}
+        <div className="text-5xl font-extrabold tracking-wide text-(--green-700)">
+          {currentWord.label}
+        </div>
+
+        {/* Teaching phase */}
+        {phase === "teaching" && (
+          <div className="flex w-full flex-col items-center gap-4">
+            <div className={`flex flex-col items-center gap-2 transition-opacity ${isSpeaking ? "opacity-100" : "opacity-0"}`}>
+              <div className="flex items-center gap-2 text-[13px] font-semibold text-(--green-700)">
+                <span className="animate-pulse">🔊</span>
+                <span>{speakPass === 0 ? "Listen…" : speakPass === 1 ? "Slower…" : "Very slow…"}</span>
+              </div>
+              <div className="flex gap-2">
+                {SPEECH_PASSES.map((_, i) => (
+                  <div
+                    key={i}
+                    className={`h-2 w-2 rounded-full transition-all ${i <= speakPass ? "scale-125 bg-[#1a9a68]" : "bg-[linear-gradient(130deg,#e2f2c7,#d8efe1)]"}`}
+                  />
+                ))}
+              </div>
+            </div>
+
+            <button
+              onClick={playWordSlowly}
+              disabled={isSpeaking}
+              className="flex w-full max-w-xs items-center justify-center gap-2 rounded-[14px] border border-(--line-soft) bg-white px-4 py-3 text-[12px] font-semibold text-(--green-700) transition-all hover:-translate-y-0.5 hover:border-(--gold-500) disabled:opacity-40"
+            >
+              <IconSpeaker />
+              Hear it again
+            </button>
+
+            <button
+              onClick={() => { cancelledRef.current = true; window.speechSynthesis?.cancel(); setIsSpeaking(false); setWordPhase("pronounce"); }}
+              className="w-full max-w-xs rounded-[14px] border border-(--gold-500) bg-[linear-gradient(145deg,#1a9a68,#14714f)] px-4 py-3 text-[13px] font-semibold text-white shadow-[0_10px_20px_rgba(7,70,43,0.2)] transition-all hover:-translate-y-0.5"
+            >
+              Now you say it →
+            </button>
+          </div>
+        )}
+
+        {/* Pronounce phase */}
+        {phase === "pronounce" && (
+          <div className="flex w-full flex-col items-center gap-4">
+            <div className="text-[13px] font-semibold text-(--green-600)">
+              Say: <span className="font-extrabold">&ldquo;{currentWord.label}&rdquo;</span>
+            </div>
+
+            <AudioRecorder
+              targetSentence={currentWord.label}
+              onResult={handleResult}
+              onError={(e) => setError(e)}
+            />
+
+            <button
+              onClick={() => setWordPhase("teaching")}
+              className="cursor-pointer text-[11px] font-semibold text-(--green-600)/70 underline underline-offset-2"
+            >
+              &larr; Hear it again first
+            </button>
+          </div>
+        )}
+
+        {/* Result phase */}
+        {phase === "result" && wordResult && (
+          <div className="flex w-full flex-col items-center gap-4">
+            {wordResult.accuracy_score >= 70 ? (
+              <>
+                <div className="text-5xl">✅</div>
+                <div className="text-xl font-extrabold text-(--green-700)">Well done!</div>
+                <div className="text-[13px] font-semibold text-(--green-600)">{wordResult.accuracy_score}% correct</div>
+                <button
+                  onClick={handleNext}
+                  className="w-full max-w-xs rounded-[14px] border border-(--gold-500) bg-[linear-gradient(145deg,#1a9a68,#14714f)] px-4 py-3 text-[13px] font-semibold text-white shadow-[0_10px_20px_rgba(7,70,43,0.2)] transition-all hover:-translate-y-0.5"
+                >
+                  {wordIndex < words.length - 1 ? "Next word →" : "Finish!"}
+                </button>
+              </>
+            ) : (
+              <>
+                <div className="text-5xl">🔄</div>
+                <div className="text-xl font-extrabold text-(--green-700)">Try again!</div>
+                <div className="text-[13px] font-semibold text-(--green-600)">
+                  {wordResult.is_omitted ? "Not heard" : `${wordResult.accuracy_score}% correct`}
+                </div>
+                <button
+                  onClick={handleRetry}
+                  className="w-full max-w-xs rounded-[14px] border border-(--gold-500) bg-[linear-gradient(145deg,#1a9a68,#14714f)] px-4 py-3 text-[13px] font-semibold text-white shadow-[0_10px_20px_rgba(7,70,43,0.2)] transition-all hover:-translate-y-0.5"
+                >
+                  Try again
+                </button>
+                <button
+                  onClick={handleNext}
+                  className="cursor-pointer text-[11px] font-semibold text-(--green-600)/70 underline underline-offset-2"
+                >
+                  Skip →
+                </button>
+              </>
+            )}
+          </div>
+        )}
+
+        {/* Error display */}
+        {error && (
+          <div className="w-full max-w-xs rounded-xl bg-orange-50 p-4 text-center">
+            {error.includes("AZURE_SPEECH_KEY") ? (
+              <>
+                <div className="mb-1 text-[12px] font-bold text-orange-700">Speech check not set up yet</div>
+                <div className="mb-3 text-[11px] text-orange-600">Azure credentials are missing. You can still practice!</div>
+                <button
+                  onClick={handleNext}
+                  className="rounded-xl bg-[#1a9a68] px-5 py-2 text-[12px] font-bold text-white"
+                >
+                  {wordIndex < words.length - 1 ? "Next word →" : "Finish!"}
+                </button>
+              </>
+            ) : (
+              <div className="text-[12px] font-semibold text-red-500">{error}</div>
+            )}
+          </div>
+        )}
+      </div>
+
+      <div className="mt-auto p-3">
+        <button
+          onClick={onBack}
+          className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-[14px] border border-(--line-soft) bg-white px-4 py-3 text-[12px] font-semibold text-(--green-800) transition-colors hover:bg-(--surface-soft)"
+        >
+          <IconBack />
+          <span>Back to sentence</span>
+        </button>
+      </div>
+    </div>
+  );
+}
+
 // ─── Output screen ────────────────────────────────────────────────────────────
 
 function OutputScreen({
@@ -200,29 +519,32 @@ function OutputScreen({
 }) {
   const [sentence, setSentence] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showPractice, setShowPractice] = useState(false);
+  const [wordPictograms, setWordPictograms] = useState<WordPictogram[]>([]);
 
   const fetchSentence = useCallback(async () => {
     setLoading(true);
     setSentence(null);
+    setShowPractice(false);
     try {
       const res = await fetch("/api/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           trail: trail.map((n) => n.label),
-          context: trail
-            .map((n) => n.llmContext)
-            .filter(Boolean),
+          context: trail.map((n) => n.llmContext).filter(Boolean),
         }),
       });
       const data = await res.json();
-      if (data.sentence) {
-        setSentence(data.sentence);
-      } else {
-        setSentence("I need help.");
-      }
+      const text = data.sentence || "I need help.";
+      setSentence(text);
+      // Pre-resolve pictogram images for each sentence word
+      const words = text.trim().split(/\s+/);
+      resolveArasaacImages(words).then(setWordPictograms);
     } catch {
-      setSentence("I need help.");
+      const fallback = "I need help.";
+      setSentence(fallback);
+      resolveArasaacImages(["I", "need", "help"]).then(setWordPictograms);
     } finally {
       setLoading(false);
     }
@@ -230,7 +552,6 @@ function OutputScreen({
 
   const fetchedRef = useRef(false);
 
-  // Fetch on mount
   useEffect(() => {
     if (fetchedRef.current) return;
     fetchedRef.current = true;
@@ -241,10 +562,14 @@ function OutputScreen({
 
   // Auto-speak when sentence arrives
   useEffect(() => {
-    if (sentence) {
+    if (sentence && !showPractice) {
       speak(sentence, { rate: 0.85, pitch: 1 });
     }
-  }, [sentence, speak]);
+  }, [sentence, speak, showPractice]);
+
+  if (showPractice && wordPictograms.length > 0) {
+    return <SpeechPractice words={wordPictograms} onBack={() => setShowPractice(false)} />;
+  }
 
   return (
     <div className="flex h-full flex-col bg-[linear-gradient(170deg,#edf8dc_0%,#f9fff4_45%,#ffffff_100%)]">
@@ -293,11 +618,12 @@ function OutputScreen({
           <span>Grid</span>
         </button>
         <button
-          onClick={() => console.log("Practice speaking")}
-          className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-[14px] border border-(--gold-500) bg-[linear-gradient(145deg,#1a9a68,#14714f)] px-4 py-3 text-[13px] font-semibold text-white shadow-[0_10px_20px_rgba(7,70,43,0.2)] transition-all hover:-translate-y-0.5"
+          onClick={() => setShowPractice(true)}
+          disabled={loading || wordPictograms.length === 0}
+          className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-[14px] border border-(--gold-500) bg-[linear-gradient(145deg,#1a9a68,#14714f)] px-4 py-3 text-[13px] font-semibold text-white shadow-[0_10px_20px_rgba(7,70,43,0.2)] transition-all hover:-translate-y-0.5 disabled:opacity-50"
         >
           <IconPlay />
-          <span>Play</span>
+          <span>Practice Speaking</span>
         </button>
       </div>
     </div>
