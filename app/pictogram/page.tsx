@@ -148,13 +148,16 @@ function PictogramTile({
     <button
       onClick={() => onTap(node)}
       className="pictogram-card animate-card-in flex cursor-pointer flex-col items-center justify-center rounded-[22px] border border-(--line-soft) bg-[linear-gradient(155deg,#ffffff,#f8fff4)] p-3"
-      style={{ minHeight: 124, animationDelay: `${index * 40}ms` }}
+      style={{ minHeight: 140, animationDelay: `${index * 40}ms` }}
       aria-label={node.label}
     >
       <div className="relative flex h-21 w-full items-center justify-center rounded-[18px] bg-[radial-gradient(circle_at_30%_20%,#e4f4ce,#d8efe1)]">
         <PictogramImage keyword={node.arasaacKeyword} preferredId={node.arasaacId} size={64} />
       </div>
       <div className="mt-2 text-center text-[12px] font-semibold text-(--green-800)">{node.label}</div>
+      {node.label_2 && (
+        <div className="mt-0.5 text-center text-[10px] font-medium text-(--green-700)/60">{node.label_2}</div>
+      )}
     </button>
   );
 }
@@ -201,7 +204,7 @@ function TrailChips({
             <PictogramImage keyword={node.arasaacKeyword} preferredId={node.arasaacId} size={imgSize} />
           </div>
           <div className="w-full px-1 py-1 text-center text-[10px] font-semibold leading-tight text-(--green-800)">
-            {node.label}
+            {node.label_2 ?? node.label}
           </div>
         </div>
       ))}
@@ -748,19 +751,38 @@ function OutputScreen({
             <div className="h-6 w-32 animate-pulse rounded-lg bg-[linear-gradient(130deg,#e2f2c7,#d8efe1)]" />
           </div>
         ) : (
-          <div className="animate-rise-in rounded-[28px] border border-(--line-soft) bg-white/90 px-6 py-5 text-center font-(--font-display) text-[28px] leading-tight text-(--green-800) shadow-[0_14px_28px_rgba(7,70,43,0.12)]">
+          <div className="animate-rise-in relative rounded-[28px] border border-(--line-soft) bg-white/90 px-5 pb-10 pt-4 text-center font-(--font-display) text-[20px] leading-snug text-(--green-800) shadow-[0_14px_28px_rgba(7,70,43,0.12)]">
             {sentence}
+            {/* Speak + Regenerate icons pinned to bottom-right of the text box */}
+            <div className="absolute bottom-2 right-2 flex items-center gap-1.5">
+              <button
+                onClick={() => sentence && speak(sentence, { rate: 0.85, pitch: 1 })}
+                disabled={loading}
+                className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-(--line-soft) bg-white text-(--green-700) shadow-[0_4px_10px_rgba(7,70,43,0.1)] transition-all hover:-translate-y-0.5 hover:border-(--gold-500) disabled:opacity-50"
+                aria-label="Speak"
+              >
+                <IconSpeaker />
+              </button>
+              <button
+                onClick={fetchSentence}
+                disabled={loading}
+                className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-(--line-soft) bg-white text-(--green-700) shadow-[0_4px_10px_rgba(7,70,43,0.1)] transition-all hover:-translate-y-0.5 hover:border-(--gold-500) disabled:opacity-50"
+                aria-label="Refresh"
+              >
+                <IconRefresh />
+              </button>
+            </div>
           </div>
         )}
 
         {/* Contextual illustration */}
         {!loading && (isImageLoading || imageSrc || imageError) && (
-          <div className="w-full max-w-xs overflow-hidden rounded-[22px] border border-(--line-soft) bg-[linear-gradient(130deg,#e2f2c7,#d8efe1)] shadow-[0_8px_18px_rgba(7,70,43,0.09)]">
+          <div className="h-40 w-40 overflow-hidden rounded-[22px] border border-(--line-soft) bg-[linear-gradient(130deg,#e2f2c7,#d8efe1)] shadow-[0_8px_18px_rgba(7,70,43,0.09)]">
             {isImageLoading && (
-              <div className="h-48 w-full animate-pulse rounded-[22px] bg-[linear-gradient(130deg,#e2f2c7,#d8efe1)]" />
+              <div className="h-full w-full animate-pulse rounded-[22px] bg-[linear-gradient(130deg,#e2f2c7,#d8efe1)]" />
             )}
             {imageError && (
-              <div className="flex h-48 w-full items-center justify-center rounded-[22px]">
+              <div className="flex h-full w-full items-center justify-center rounded-[22px]">
                 <span className="text-[12px] font-semibold text-(--green-700)/60">Image unavailable</span>
               </div>
             )}
@@ -769,34 +791,14 @@ function OutputScreen({
               <img
                 src={imageSrc}
                 alt={sentence ?? ""}
-                className="block w-full rounded-[22px] object-cover opacity-100 transition-opacity duration-500"
-                style={{ aspectRatio: "1 / 1" }}
+                className="block h-full w-full rounded-[22px] object-cover opacity-100 transition-opacity duration-500"
               />
             )}
           </div>
         )}
 
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => sentence && speak(sentence, { rate: 0.85, pitch: 1 })}
-            disabled={loading}
-            className="flex h-12 w-12 cursor-pointer items-center justify-center rounded-full border border-(--line-soft) bg-white text-(--green-700) shadow-[0_8px_18px_rgba(7,70,43,0.1)] transition-all hover:-translate-y-0.5 hover:border-(--gold-500) disabled:opacity-50"
-            aria-label="Speak"
-          >
-            <IconSpeaker />
-          </button>
-          <button
-            onClick={fetchSentence}
-            disabled={loading}
-            className="flex h-12 w-12 cursor-pointer items-center justify-center rounded-full border border-(--line-soft) bg-white text-(--green-700) shadow-[0_8px_18px_rgba(7,70,43,0.1)] transition-all hover:-translate-y-0.5 hover:border-(--gold-500) disabled:opacity-50"
-            aria-label="Refresh"
-          >
-            <IconRefresh />
-          </button>
-        </div>
-
         {/* Practice speaking – circular, centred below sentence */}
-        <button
+        {!loading && <button
           onClick={() => setShowPractice(true)}
           disabled={loading || wordPictograms.length === 0}
           title="Practice speaking"
@@ -804,7 +806,7 @@ function OutputScreen({
           className="flex h-20 w-20 items-center justify-center rounded-full border-2 border-(--gold-500) bg-[linear-gradient(145deg,#1a9a68,#14714f)] shadow-[0_12px_32px_rgba(7,70,43,0.3)] transition-all hover:-translate-y-1 hover:shadow-[0_16px_36px_rgba(7,70,43,0.35)] disabled:border-slate-300 disabled:bg-slate-200 disabled:shadow-none"
         >
           <Speech size={36} color="white" strokeWidth={1.5} />
-        </button>
+        </button> }
       </div>
 
       <div className="mt-auto p-3">
