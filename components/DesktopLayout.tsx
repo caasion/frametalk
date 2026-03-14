@@ -97,24 +97,27 @@ function Sidebar() {
   );
 }
 
-const STEPS = [
+const DEFAULT_STEPS = [
   { num: 1, label: "Upload object" },
   { num: 2, label: "Comic story" },
   { num: 3, label: "Say it out loud" },
 ];
 
+type StepDef = { num: number; label: string };
+
 type RightPanelProps = {
   currentStep?: number;
   detectedObject?: string | null;
+  steps?: StepDef[];
 };
 
-function RightPanel({ currentStep = 1, detectedObject = null }: RightPanelProps) {
+function RightPanel({ currentStep = 1, detectedObject = null, steps = DEFAULT_STEPS }: RightPanelProps) {
   return (
     <div className="flex w-[200px] shrink-0 flex-col gap-3 pt-2">
       <div className="text-[10px] font-bold uppercase tracking-[1px] text-[#B4B2A9]">Flow</div>
 
       <div className="flex flex-col gap-1.5">
-        {STEPS.map((s) => {
+        {steps.map((s) => {
           const isCurrent = s.num === currentStep;
           const isDone = s.num < currentStep;
           return (
@@ -191,15 +194,16 @@ type DesktopLayoutProps = {
   children: React.ReactNode;
   currentStep?: number;
   detectedObject?: string | null;
+  steps?: StepDef[];
 };
 
-export default function DesktopLayout({ children, currentStep = 1, detectedObject = null }: DesktopLayoutProps) {
+export default function DesktopLayout({ children, currentStep = 1, detectedObject = null, steps }: DesktopLayoutProps) {
   return (
     <div className="flex min-h-screen items-center justify-center bg-[#f0ede6] px-6 py-8">
       <div className="flex items-start justify-center gap-9">
         <Sidebar />
         <PhoneFrame>{children}</PhoneFrame>
-        <RightPanel currentStep={currentStep} detectedObject={detectedObject} />
+        <RightPanel currentStep={currentStep} detectedObject={detectedObject} steps={steps} />
       </div>
     </div>
   );
