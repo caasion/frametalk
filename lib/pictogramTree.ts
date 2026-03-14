@@ -189,6 +189,15 @@ const workChildren: PictogramNode[] = [
   { id: "work-rights", label: "My rights",  arasaacKeyword: "law", llmContext: "The user needs help regarding labor rights and workplace disputes.", children: workRights },
 ];
 
+// ─── 🏥 HEALTH (top-level children) ──────────────────────────────────────────
+
+const healthChildren: PictogramNode[] = [
+  { id: "health-hospital", label: "Hospital / Clinic", arasaacKeyword: "hospital",  llmContext: "The user is at or needs to go to a hospital or clinic.", children: hospitalReasons },
+  { id: "health-pharmacy", label: "Pharmacy",          arasaacKeyword: "pharmacy",  llmContext: "The user is at or needs to go to a pharmacy.", children: pharmacyNeeds },
+  { id: "health-body",     label: "Body pain",         arasaacKeyword: "pain",      llmContext: "The user is experiencing physical pain or discomfort.", children: bodyParts },
+  { id: "health-feelings", label: "Feelings",          arasaacKeyword: "feelings",  llmContext: "The user wants to express emotional feelings.", children: feelings },
+];
+
 // ─── ROOT TREE ────────────────────────────────────────────────────────────────
 
 export const pictogramTree: PictogramNode[] = [
