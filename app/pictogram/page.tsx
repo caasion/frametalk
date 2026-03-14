@@ -336,7 +336,7 @@ export default function PictogramPage() {
   };
 
   const isLeaf = trail.length > 0 && !trail[trail.length - 1].children;
-  const canGenerate = trail.length >= 3;
+  const canGenerate = isLeaf || trail.length >= 3;
 
   if (showOutput) {
     return (
