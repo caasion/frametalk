@@ -10,6 +10,8 @@ import {
   resolveArasaacImages,
   WordPictogram,
 } from "@/lib/resolveArasaacImages";
+import { Mic2, Speech } from "lucide-react";
+import { WavRecorder } from "@/lib/wavRecorder";
 
 function IconCheck() {
   return (
@@ -48,12 +50,43 @@ function IconBack() {
   );
 }
 
+function IconHome() {
+  return (
+    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+      <polyline points="9 22 9 12 15 12 15 22" />
+    </svg>
+  );
+}
+
 // ─── Pictogram tile image ─────────────────────────────────────────────────────
 
 function IconPlay() {
   return (
     <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor" stroke="none">
       <path d="M8 5v14l11-7-11-7z" />
+    </svg>
+  );
+}
+
+function IconGrid() {
+  return (
+    <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <rect x="3" y="3" width="7" height="7" rx="1" />
+      <rect x="14" y="3" width="7" height="7" rx="1" />
+      <rect x="3" y="14" width="7" height="7" rx="1" />
+      <rect x="14" y="14" width="7" height="7" rx="1" />
+    </svg>
+  );
+}
+
+function IconMic() {
+  return (
+    <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
+      <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+      <line x1="12" y1="19" x2="12" y2="23" />
+      <line x1="8" y1="23" x2="16" y2="23" />
     </svg>
   );
 }
@@ -143,21 +176,25 @@ function TrailChips({
   trail: PictogramNode[];
   size?: "default" | "large";
 }) {
-  const isLarge = size === "large";
+  const imgSize = size === "large" ? 80 : 60;
+  const cardWidth = imgSize + 16;
 
   return (
-    <div className={`flex flex-wrap items-center justify-center ${isLarge ? "gap-2.5 px-4" : "gap-2 px-3"}`}>
+    <div className={`flex flex-wrap items-center justify-center ${size === "large" ? "gap-3 px-4" : "gap-2 px-2"}`}>
       {trail.map((node) => (
         <div
           key={node.id}
-          className={`flex items-center rounded-2xl border border-(--line-soft) bg-white shadow-[0_4px_10px_rgba(7,70,43,0.08)] ${
-            isLarge ? "gap-2 px-4 py-2.5" : "gap-1.5 px-3 py-2"
-          }`}
+          className="flex flex-col items-center overflow-hidden rounded-2xl border border-(--line-soft) bg-white shadow-[0_4px_10px_rgba(7,70,43,0.08)]"
+          style={{ width: cardWidth }}
         >
-          <PictogramImage keyword={node.arasaacKeyword} size={isLarge ? 40 : 28} />
-          <span className={isLarge ? "text-[13px] font-semibold text-(--green-800)" : "text-[12px] font-semibold text-(--green-800)"}>
+          <div
+            className="flex w-full items-center justify-center bg-[radial-gradient(circle_at_30%_20%,#e4f4ce,#d8efe1)] p-1.5"
+          >
+            <PictogramImage keyword={node.arasaacKeyword} size={imgSize} />
+          </div>
+          <div className="w-full px-1 py-1 text-center text-[10px] font-semibold leading-tight text-(--green-800)">
             {node.label}
-          </span>
+          </div>
         </div>
       ))}
     </div>
@@ -204,14 +241,16 @@ function msDelay(ms: number): Promise<void> {
 
 // ─── Word-by-word speech practice ────────────────────────────────────────────
 
-type WordPhase = "teaching" | "pronounce" | "result";
+type WordPhase = "teaching" | "result";
 
 function SpeechPractice({
   words,
   onBack,
+  onGoHome,
 }: {
   words: WordPictogram[];
   onBack: () => void;
+  onGoHome: () => void;
 }) {
   const [wordIndex, setWordIndex] = useState(0);
   const [phase, setWordPhase] = useState<WordPhase>("teaching");
@@ -221,42 +260,35 @@ function SpeechPractice({
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [speakPass, setSpeakPass] = useState(0);
   const cancelledRef = useRef(false);
+  const [recordingState, setRecordingState] = useState<"idle" | "recording" | "processing">("idle");
+  const wavRecorderRef = useRef<WavRecorder | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
 
   const currentWord = words[wordIndex];
   // Single-letter "I" gets a period so TTS doesn't spell it out
   const ttsText = currentWord.label === "I" ? "I." : currentWord.label;
 
-  const playWordSlowly = useCallback(async () => {
+  const playAtSpeed = useCallback(async (index: number) => {
     if (isSpeaking) return;
     cancelledRef.current = false;
+    setSpeakPass(index);
     setIsSpeaking(true);
-    for (let i = 0; i < SPEECH_PASSES.length; i++) {
-      if (cancelledRef.current) break;
-      setSpeakPass(i);
-      const { rate, pitch } = SPEECH_PASSES[i];
-      await speakAt(ttsText, rate, pitch);
-      if (i < SPEECH_PASSES.length - 1 && !cancelledRef.current) await msDelay(1800);
-    }
+    const { rate, pitch } = SPEECH_PASSES[index];
+    await speakAt(ttsText, rate, pitch);
     setIsSpeaking(false);
   }, [ttsText, isSpeaking]);
 
-  // Auto-play when entering teaching phase
+  // Auto-play once at rabbit speed when entering teaching phase
   useEffect(() => {
     if (phase !== "teaching") return;
     let isCancelled = false;
     cancelledRef.current = false;
+    setSpeakPass(0);
     const run = async () => {
       setIsSpeaking(true);
       await msDelay(400);
-      for (let i = 0; i < SPEECH_PASSES.length; i++) {
-        if (isCancelled || cancelledRef.current) break;
-        setSpeakPass(i);
-        const { rate, pitch } = SPEECH_PASSES[i];
-        await speakAt(ttsText, rate, pitch);
-        if (i < SPEECH_PASSES.length - 1 && !isCancelled && !cancelledRef.current) {
-          await msDelay(1800);
-        }
-      }
+      if (isCancelled || cancelledRef.current) { setIsSpeaking(false); return; }
+      await speakAt(ttsText, SPEECH_PASSES[0].rate, SPEECH_PASSES[0].pitch);
       if (!isCancelled) setIsSpeaking(false);
     };
     run();
@@ -290,8 +322,73 @@ function SpeechPractice({
   const handleRetry = useCallback(() => {
     setWordResult(null);
     setError(null);
+    setRecordingState("idle");
     setWordPhase("teaching");
   }, []);
+
+  // ── Inline recording ─────────────────────────────────────────────────────
+
+  const ensureMicAccess = useCallback(async () => {
+    if (streamRef.current) return;
+    try {
+      streamRef.current = await navigator.mediaDevices.getUserMedia({
+        audio: { echoCancellation: true, noiseSuppression: true },
+      });
+    } catch {
+      setError("Microphone access denied.");
+      throw new Error("Mic denied");
+    }
+  }, []);
+
+  const sendForEvaluation = useCallback(async (blob: Blob, target: string) => {
+    const formData = new FormData();
+    formData.append("audio", blob, "recording.wav");
+    formData.append("target_sentence", target);
+    try {
+      const res = await fetch("/api/evaluate", { method: "POST", body: formData });
+      if (!res.ok) {
+        const detail = await res.text();
+        setError(`Evaluation failed: ${detail}`);
+        setRecordingState("idle");
+        return;
+      }
+      const data: EvaluationResult = await res.json();
+      handleResult(data);
+    } catch (err) {
+      setError(`Network error: ${err instanceof Error ? err.message : "unknown"}`);
+    } finally {
+      setRecordingState("idle");
+    }
+  }, [handleResult]);
+
+  const startRecording = useCallback(async () => {
+    cancelledRef.current = true;
+    window.speechSynthesis?.cancel();
+    setIsSpeaking(false);
+    try { await ensureMicAccess(); } catch { return; }
+    const recorder = new WavRecorder();
+    await recorder.start(streamRef.current!);
+    wavRecorderRef.current = recorder;
+    setRecordingState("recording");
+  }, [ensureMicAccess]);
+
+  const stopRecording = useCallback(() => {
+    if (!wavRecorderRef.current) return;
+    setRecordingState("processing");
+    const wavBlob = wavRecorderRef.current.stop();
+    wavRecorderRef.current = null;
+    sendForEvaluation(wavBlob, currentWord.label);
+  }, [sendForEvaluation, currentWord.label]);
+
+  const handleRecordPointerDown = useCallback((e: React.PointerEvent) => {
+    e.preventDefault();
+    if (recordingState === "idle") startRecording();
+  }, [recordingState, startRecording]);
+
+  const handleRecordPointerUp = useCallback((e: React.PointerEvent) => {
+    e.preventDefault();
+    if (recordingState === "recording") stopRecording();
+  }, [recordingState, stopRecording]);
 
   // ── All done ─────────────────────────────────────────────────────────────
 
@@ -315,8 +412,26 @@ function SpeechPractice({
 
   return (
     <div className="flex h-full flex-col bg-[linear-gradient(170deg,#edf8dc_0%,#f9fff4_45%,#ffffff_100%)]">
+      <div className="ml-4 mt-4 flex items-center gap-2">
+        <button
+          onClick={onBack}
+          title="Back to sentence"
+          aria-label="Back to sentence"
+          className="flex h-9 w-9 items-center justify-center rounded-full border border-(--line-soft) bg-white text-(--green-700) transition-all hover:-translate-y-0.5 hover:border-(--gold-500)"
+        >
+          <IconBack />
+        </button>
+        <button
+          onClick={onGoHome}
+          title="Back to home"
+          aria-label="Back to home"
+          className="flex h-9 w-9 items-center justify-center rounded-full border border-(--line-soft) bg-white text-(--green-700) transition-all hover:-translate-y-0.5 hover:border-(--gold-500)"
+        >
+          <IconHome />
+        </button>
+      </div>
       {/* Progress dots */}
-      <div className="flex justify-center gap-2 px-4 pt-5">
+      <div className="flex justify-center gap-2 px-4 pt-3">
         {words.map((_, i) => (
           <div
             key={i}
@@ -349,58 +464,69 @@ function SpeechPractice({
 
         {/* Teaching phase */}
         {phase === "teaching" && (
-          <div className="flex w-full flex-col items-center gap-4">
-            <div className={`flex flex-col items-center gap-2 transition-opacity ${isSpeaking ? "opacity-100" : "opacity-0"}`}>
-              <div className="flex items-center gap-2 text-[13px] font-semibold text-(--green-700)">
-                <span className="animate-pulse">🔊</span>
-                <span>{speakPass === 0 ? "Listen…" : speakPass === 1 ? "Slower…" : "Very slow…"}</span>
-              </div>
-              <div className="flex gap-2">
-                {SPEECH_PASSES.map((_, i) => (
-                  <div
-                    key={i}
-                    className={`h-2 w-2 rounded-full transition-all ${i <= speakPass ? "scale-125 bg-[#1a9a68]" : "bg-[linear-gradient(130deg,#e2f2c7,#d8efe1)]"}`}
-                  />
-                ))}
-              </div>
+          <div className="flex w-full flex-col items-center gap-6">
+            {/* Animal speed row – tap to choose speed */}
+            <div className="flex items-center justify-center gap-6">
+              {([
+                { emoji: "🐇" },
+                { emoji: "🐢" },
+                { emoji: "🐌" },
+              ] as const).map(({ emoji }, i) => (
+                <button
+                  key={i}
+                  onClick={() => setSpeakPass(i)}
+                  className={`rounded-2xl p-2 text-4xl transition-all duration-150 hover:scale-125 hover:opacity-100 active:scale-95 ${
+                    i === speakPass
+                      ? "opacity-100 bg-[#1a9a68]/10 ring-2 ring-[#1a9a68]/30"
+                      : "opacity-30"
+                  }`}
+                >
+                  {emoji}
+                </button>
+              ))}
             </div>
 
+            {/* Hear it again – replay at selected speed */}
             <button
-              onClick={playWordSlowly}
+              onClick={() => playAtSpeed(speakPass)}
               disabled={isSpeaking}
-              className="flex w-full max-w-xs items-center justify-center gap-2 rounded-[14px] border border-(--line-soft) bg-white px-4 py-3 text-[12px] font-semibold text-(--green-700) transition-all hover:-translate-y-0.5 hover:border-(--gold-500) disabled:opacity-40"
+              aria-label="Hear it again"
+              title="Hear it again"
+              className="relative flex h-20 w-20 items-center justify-center rounded-full border-2 border-(--line-soft) bg-white shadow-[0_8px_24px_rgba(7,70,43,0.12)] transition-all hover:-translate-y-1 hover:border-(--gold-500) disabled:opacity-40"
             >
-              <IconSpeaker />
-              Hear it again
+              <span className="text-4xl">🔊</span>
+              <div className="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full bg-[#1a9a68] text-white shadow-md">
+                <IconRefresh />
+              </div>
             </button>
 
+            {/* Hold to record */}
             <button
-              onClick={() => { cancelledRef.current = true; window.speechSynthesis?.cancel(); setIsSpeaking(false); setWordPhase("pronounce"); }}
-              className="w-full max-w-xs rounded-[14px] border border-(--gold-500) bg-[linear-gradient(145deg,#1a9a68,#14714f)] px-4 py-3 text-[13px] font-semibold text-white shadow-[0_10px_20px_rgba(7,70,43,0.2)] transition-all hover:-translate-y-0.5"
+              onPointerDown={handleRecordPointerDown}
+              onPointerUp={handleRecordPointerUp}
+              onPointerLeave={handleRecordPointerUp}
+              aria-label="Hold to say it"
+              title="Hold to say it"
+              disabled={recordingState === "processing"}
+              style={{ touchAction: "none" }}
+              className={`relative flex h-28 w-28 items-center justify-center rounded-full border-2 transition-all ${
+                recordingState === "recording"
+                  ? "scale-110 border-red-400 bg-[linear-gradient(145deg,#dc2626,#991b1b)] shadow-[0_12px_32px_rgba(220,38,38,0.4)]"
+                  : recordingState === "processing"
+                  ? "cursor-wait border-amber-400 bg-[linear-gradient(145deg,#d97706,#92400e)] opacity-70 shadow-[0_12px_32px_rgba(217,119,6,0.4)]"
+                  : "border-(--gold-500) bg-[linear-gradient(145deg,#1a9a68,#14714f)] shadow-[0_12px_32px_rgba(7,70,43,0.3)] hover:-translate-y-1 hover:shadow-[0_16px_36px_rgba(7,70,43,0.35)]"
+              }`}
             >
-              Now you say it →
-            </button>
-          </div>
-        )}
-
-        {/* Pronounce phase */}
-        {phase === "pronounce" && (
-          <div className="flex w-full flex-col items-center gap-4">
-            <div className="text-[13px] font-semibold text-(--green-600)">
-              Say: <span className="font-extrabold">&ldquo;{currentWord.label}&rdquo;</span>
-            </div>
-
-            <AudioRecorder
-              targetSentence={currentWord.label}
-              onResult={handleResult}
-              onError={(e) => setError(e)}
-            />
-
-            <button
-              onClick={() => setWordPhase("teaching")}
-              className="cursor-pointer text-[11px] font-semibold text-(--green-600)/70 underline underline-offset-2"
-            >
-              &larr; Hear it again first
+              {recordingState === "recording" && (
+                <span
+                  className="pointer-events-none absolute -inset-[10px] rounded-full border-[3px] border-red-400"
+                  style={{ animation: "pulse-ring 1s ease-out infinite" }}
+                />
+              )}
+              {recordingState === "processing" && (
+                <span className="pointer-events-none absolute -inset-[6px] animate-spin rounded-full border-[3px] border-transparent border-t-amber-400" />
+              )}
+              <Speech size={56} color="white" strokeWidth={1.5} />
             </button>
           </div>
         )}
@@ -465,15 +591,6 @@ function SpeechPractice({
         )}
       </div>
 
-      <div className="mt-auto p-3">
-        <button
-          onClick={onBack}
-          className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-[14px] border border-(--line-soft) bg-white px-4 py-3 text-[12px] font-semibold text-(--green-800) transition-colors hover:bg-(--surface-soft)"
-        >
-          <IconBack />
-          <span>Back to sentence</span>
-        </button>
-      </div>
     </div>
   );
 }
@@ -483,9 +600,11 @@ function SpeechPractice({
 function OutputScreen({
   trail,
   onBack,
+  onGoHome,
 }: {
   trail: PictogramNode[];
   onBack: () => void;
+  onGoHome: () => void;
 }) {
   const [sentence, setSentence] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -538,11 +657,29 @@ function OutputScreen({
   }, [sentence, speak, showPractice]);
 
   if (showPractice && wordPictograms.length > 0) {
-    return <SpeechPractice words={wordPictograms} onBack={() => setShowPractice(false)} />;
+    return <SpeechPractice words={wordPictograms} onBack={() => setShowPractice(false)} onGoHome={onGoHome} />;
   }
 
   return (
     <div className="flex h-full flex-col bg-[linear-gradient(170deg,#edf8dc_0%,#f9fff4_45%,#ffffff_100%)]">
+      <div className="ml-4 mt-4 flex items-center gap-2">
+        <button
+          onClick={onBack}
+          title="Back to grid"
+          aria-label="Back to grid"
+          className="flex h-9 w-9 items-center justify-center rounded-full border border-(--line-soft) bg-white text-(--green-700) transition-all hover:-translate-y-0.5 hover:border-(--gold-500)"
+        >
+          <IconBack />
+        </button>
+        <button
+          onClick={onGoHome}
+          title="Back to home"
+          aria-label="Back to home"
+          className="flex h-9 w-9 items-center justify-center rounded-full border border-(--line-soft) bg-white text-(--green-700) transition-all hover:-translate-y-0.5 hover:border-(--gold-500)"
+        >
+          <IconHome />
+        </button>
+      </div>
       <div className="flex flex-1 flex-col items-center justify-center gap-5 p-6">
         {loading ? (
           <div className="flex flex-col items-center gap-3">
@@ -578,19 +715,13 @@ function OutputScreen({
       <div className="mt-auto flex flex-col gap-2.5 p-3">
         <TrailChips trail={trail} />
         <button
-          onClick={onBack}
-          className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-[14px] border border-(--line-soft) bg-white px-4 py-3 text-[12px] font-semibold text-(--green-800) transition-colors hover:bg-(--surface-soft)"
-        >
-          <IconBack />
-          <span>Grid</span>
-        </button>
-        <button
           onClick={() => setShowPractice(true)}
           disabled={loading || wordPictograms.length === 0}
-          className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-[14px] border border-(--gold-500) bg-[linear-gradient(145deg,#1a9a68,#14714f)] px-4 py-3 text-[13px] font-semibold text-white shadow-[0_10px_20px_rgba(7,70,43,0.2)] transition-all hover:-translate-y-0.5 disabled:opacity-50"
+          title="Practice speaking"
+          aria-label="Practice speaking"
+          className="flex w-full cursor-pointer items-center justify-center rounded-[14px] border border-(--gold-500) bg-[linear-gradient(145deg,#1a9a68,#14714f)] py-3 text-white shadow-[0_10px_20px_rgba(7,70,43,0.2)] transition-all hover:-translate-y-0.5 disabled:opacity-50"
         >
-          <IconPlay />
-          <span>Practice Speaking</span>
+          <IconMic />
         </button>
       </div>
     </div>
@@ -624,7 +755,11 @@ export default function PictogramPage() {
   if (showOutput) {
     return (
       <DesktopLayout>
-        <OutputScreen trail={trail} onBack={() => setShowOutput(false)} />
+        <OutputScreen
+          trail={trail}
+          onBack={() => setShowOutput(false)}
+          onGoHome={() => { setTrail([]); setShowOutput(false); }}
+        />
       </DesktopLayout>
     );
   }
@@ -635,14 +770,24 @@ export default function PictogramPage() {
         <div className="pointer-events-none absolute inset-x-0 top-0 h-20 bg-[linear-gradient(180deg,rgba(20,113,79,0.08),rgba(20,113,79,0))]" />
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-[linear-gradient(0deg,rgba(183,146,44,0.1),rgba(183,146,44,0))]" />
 
-        <button
-          onClick={handleGoBack}
-          disabled={trail.length === 0}
-          className="relative z-10 ml-4 mt-4 flex h-9 w-9 items-center justify-center rounded-full border border-(--line-soft) bg-white text-(--green-700) transition-all hover:-translate-y-0.5 hover:border-(--gold-500) disabled:cursor-default disabled:opacity-65 disabled:hover:translate-y-0 disabled:hover:border-(--line-soft)"
-          aria-label="Back"
-        >
-          <IconBack />
-        </button>
+        {trail.length > 0 && (
+          <div className="relative z-10 ml-4 mt-4 flex items-center gap-2">
+            <button
+              onClick={handleGoBack}
+              className="flex h-9 w-9 items-center justify-center rounded-full border border-(--line-soft) bg-white text-(--green-700) transition-all hover:-translate-y-0.5 hover:border-(--gold-500)"
+              aria-label="Back"
+            >
+              <IconBack />
+            </button>
+            <button
+              onClick={() => setTrail([])}
+              className="flex h-9 w-9 items-center justify-center rounded-full border border-(--line-soft) bg-white text-(--green-700) transition-all hover:-translate-y-0.5 hover:border-(--gold-500)"
+              aria-label="Home"
+            >
+              <IconHome />
+            </button>
+          </div>
+        )}
 
         {isLeaf ? (
           <div className="flex flex-1 flex-col items-center justify-center gap-4 p-6">
@@ -662,10 +807,11 @@ export default function PictogramPage() {
           <button
             onClick={() => setShowOutput(true)}
             disabled={!canGenerate}
-            className="mt-2.5 flex w-full items-center justify-center gap-2 rounded-[14px] border border-(--gold-500) bg-[linear-gradient(145deg,#1a9a68,#14714f)] px-4 py-3 text-[13px] font-semibold text-white shadow-[0_10px_20px_rgba(7,70,43,0.2)] transition-all hover:-translate-y-0.5 disabled:cursor-default disabled:border-slate-300 disabled:bg-slate-100 disabled:text-slate-700 disabled:shadow-none disabled:hover:translate-y-0 disabled:hover:border-slate-300"
+            title="Speak"
+            aria-label="Speak"
+            className="mt-2.5 flex w-full items-center justify-center rounded-[14px] border border-(--gold-500) bg-[linear-gradient(145deg,#1a9a68,#14714f)] py-3 text-white shadow-[0_10px_20px_rgba(7,70,43,0.2)] transition-all hover:-translate-y-0.5 disabled:cursor-default disabled:border-slate-300 disabled:bg-slate-100 disabled:text-slate-700 disabled:shadow-none disabled:hover:translate-y-0 disabled:hover:border-slate-300"
           >
-            <IconPlay />
-            <span>Speak</span>
+            <IconSpeaker />
           </button>
         </div>
       </div>
