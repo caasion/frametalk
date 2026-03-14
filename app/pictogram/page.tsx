@@ -208,7 +208,12 @@ function OutputScreen({
       const res = await fetch("/api/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ trail: trail.map((n) => n.label) }),
+        body: JSON.stringify({
+          trail: trail.map((n) => n.label),
+          context: trail
+            .map((n) => n.llmContext)
+            .filter(Boolean),
+        }),
       });
       const data = await res.json();
       if (data.sentence) {

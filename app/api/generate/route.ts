@@ -1,16 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
-  const { trail } = (await req.json()) as { trail: string[] };
+  const { trail, context } = (await req.json()) as {
+    trail: string[];
+    context?: string[];
+  };
 
   if (!trail || trail.length === 0) {
     return NextResponse.json({ error: "trail is required" }, { status: 400 });
   }
 
   const trailStr = trail.join(" → ");
+  const contextBlock =
+    context && context.length > 0
+      ? `\nSituation context:\n${context.map((c) => `- ${c}`).join("\n")}`
+      : "";
 
   const prompt = `You are helping a Rohingya refugee with low English literacy practice speaking English.
-The user has selected these pictograms in order: ${trailStr}
+The user has selected these pictograms in order: ${trailStr}${contextBlock}
 Generate ONE short, natural English sentence they could say in this situation.
 Rules:
 - Use simple A1/A2 vocabulary only. No words like "appointment" or "prescription" — say "meeting" or "medicine" instead.
