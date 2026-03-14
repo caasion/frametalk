@@ -7,7 +7,7 @@ import DesktopLayout from "@/components/DesktopLayout";
 
 function IconUpload() {
   return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--green-mid)" strokeWidth="2.5">
+    <svg className="h-[22px] w-[22px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
       <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
       <polyline points="17 8 12 3 7 8" />
       <line x1="12" y1="3" x2="12" y2="15" />
@@ -36,7 +36,7 @@ function IconGlobe() {
 
 function IconChevron() {
   return (
-    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--green-dark)" strokeWidth="2.5">
+    <svg className="h-[13px] w-[13px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
       <polyline points="9 18 15 12 9 6" />
     </svg>
   );
@@ -70,58 +70,41 @@ export default function UploadScreen() {
 
   return (
     <DesktopLayout currentStep={1} detectedObject={null}>
-      {/* Phone screen content */}
-
-      {/* Header */}
-      <div style={{ background: "var(--green-mid)", padding: "16px 16px 14px" }}>
-        <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: "rgba(255,255,255,0.7)", marginBottom: 3 }}>
+      <div className="bg-[#1D9E75] px-4 pb-3.5 pt-4">
+        <div className="mb-[3px] text-[10px] font-bold uppercase tracking-[1.5px] text-white/70">
           FrameTalk
         </div>
-        <div style={{ fontSize: 19, fontWeight: 800, color: "white" }}>See it, say it</div>
+        <div className="text-[19px] font-extrabold text-white">See it, say it</div>
       </div>
 
-      {/* Body */}
-      <div style={{ padding: 14, display: "flex", flexDirection: "column", gap: 12 }}>
-        <div style={{ fontSize: 10, fontWeight: 700, color: "var(--green-dark)", textTransform: "uppercase", letterSpacing: 1 }}>
+      <div className="flex flex-col gap-3 p-[14px]">
+        <div className="text-[10px] font-bold uppercase tracking-[1px] text-[#0F6E56]">
           Step 1 — Pick an object
         </div>
 
-        {/* Upload zone */}
         <div
           onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
           onDragLeave={() => setDragging(false)}
           onDrop={onDrop}
           onClick={() => fileInputRef.current?.click()}
-          style={{
-            background: preview ? "transparent" : "var(--bg-white)",
-            border: `2px dashed ${dragging ? "var(--green-mid)" : "var(--green-light)"}`,
-            borderRadius: "var(--radius-lg)",
-            minHeight: 140,
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 6,
-            cursor: "pointer",
-            overflow: "hidden",
-            transition: "border-color 0.15s",
-            position: "relative",
-          }}
+          className={`relative flex min-h-[140px] cursor-pointer flex-col items-center justify-center gap-1.5 overflow-hidden rounded-[16px] border-2 border-dashed transition-colors ${
+            preview ? "bg-transparent" : "bg-white"
+          } ${dragging ? "border-[#1D9E75]" : "border-[#9FE1CB]"}`}
         >
           {preview ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={preview}
               alt="uploaded object"
-              style={{ width: "100%", height: 140, objectFit: "cover", borderRadius: "var(--radius-lg)" }}
+              className="h-[140px] w-full rounded-[16px] object-cover"
             />
           ) : (
             <>
-              <div style={{ width: 42, height: 42, background: "var(--green-pale)", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <div className="flex h-[42px] w-[42px] items-center justify-center rounded-full bg-[#E1F5EE] text-[#1D9E75]">
                 <IconUpload />
               </div>
-              <div style={{ fontSize: 12, fontWeight: 700, color: "var(--green-dark)" }}>Upload a photo</div>
-              <div style={{ fontSize: 10, color: "var(--text-muted)" }}>pill bottle · bus pass · utility bill...</div>
+              <div className="text-xs font-bold text-[#0F6E56]">Upload a photo</div>
+              <div className="text-[10px] text-[#888780]">pill bottle · bus pass · utility bill...</div>
             </>
           )}
         </div>
@@ -130,92 +113,46 @@ export default function UploadScreen() {
           ref={fileInputRef}
           type="file"
           accept="image/*"
-          style={{ display: "none" }}
+          className="hidden"
           onChange={onFileChange}
         />
 
-        {/* OR divider */}
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <div style={{ flex: 1, height: 1, background: "var(--border)" }} />
-          <div style={{ fontSize: 10, color: "var(--text-muted)", fontWeight: 600 }}>or</div>
-          <div style={{ flex: 1, height: 1, background: "var(--border)" }} />
+        <div className="flex items-center gap-2">
+          <div className="h-px flex-1 bg-[#d3d1c7]" />
+          <div className="text-[10px] font-semibold text-[#888780]">or</div>
+          <div className="h-px flex-1 bg-[#d3d1c7]" />
         </div>
 
-        {/* Camera button */}
         <button
           onClick={() => {
-            // TODO: open getUserMedia camera stream
             alert("Camera integration — wire up getUserMedia or a file input with capture='environment'");
           }}
-          style={{
-            background: "var(--green-mid)",
-            color: "white",
-            border: "none",
-            borderRadius: "var(--radius-md)",
-            padding: "11px 14px",
-            fontFamily: "inherit",
-            fontSize: 13,
-            fontWeight: 700,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 7,
-            cursor: "pointer",
-            width: "100%",
-            transition: "opacity 0.15s",
-          }}
-          onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.88")}
-          onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
+          className="flex w-full cursor-pointer items-center justify-center gap-[7px] rounded-[12px] bg-[#1D9E75] px-[14px] py-[11px] text-[13px] font-bold text-white transition-opacity hover:opacity-90"
         >
           <IconCamera />
           Use camera
         </button>
 
-        {/* Globe hint row */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 8,
-            background: "var(--green-pale)",
-            borderRadius: "var(--radius-md)",
-            padding: "10px 12px",
-            cursor: "pointer",
-          }}
-        >
-          <div style={{ width: 22, height: 22, background: "var(--green-mid)", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+        <div className="flex cursor-pointer items-center gap-2 rounded-[12px] bg-[#E1F5EE] px-3 py-2.5">
+          <div className="flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-full bg-[#1D9E75]">
             <IconGlobe />
           </div>
-          <div style={{ fontSize: 11, color: "var(--green-dark)", fontWeight: 700, flex: 1 }}>
+          <div className="flex-1 text-[11px] font-bold text-[#0F6E56]">
             Hear in your language
           </div>
-          <IconChevron />
+          <div className="text-[#0F6E56]">
+            <IconChevron />
+          </div>
         </div>
 
-        {/* Continue button — shown once image is uploaded */}
         {preview && (
           <button
             onClick={() => {
-              // TODO: navigate to /comic or trigger GPT-4o call
               alert("Proceed to comic strip screen");
             }}
-            style={{
-              background: "var(--green-dark)",
-              color: "white",
-              border: "none",
-              borderRadius: "var(--radius-md)",
-              padding: "12px 14px",
-              fontFamily: "inherit",
-              fontSize: 13,
-              fontWeight: 800,
-              cursor: "pointer",
-              width: "100%",
-              transition: "opacity 0.15s",
-            }}
-            onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.88")}
-            onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
+            className="w-full cursor-pointer rounded-[12px] bg-[#0F6E56] px-[14px] py-3 text-[13px] font-extrabold text-white transition-opacity hover:opacity-90"
           >
-            Build my story →
+            Build my story -&gt;
           </button>
         )}
       </div>
