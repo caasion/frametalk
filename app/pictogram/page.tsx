@@ -765,6 +765,11 @@ export default function PictogramPage() {
     speak(node.label, { rate: 0.9, pitch: 1 });
     const newTrail = [...trail, node];
     setTrail(newTrail);
+    // Auto-navigate when we have enough to generate
+    const newIsLeaf = !node.children;
+    if (newIsLeaf || newTrail.length >= 3) {
+      setShowOutput(true);
+    }
   };
 
   const handleGoBack = () => {
@@ -813,30 +818,23 @@ export default function PictogramPage() {
           </div>
         )}
 
-        {isLeaf ? (
-          <div className="flex flex-1 flex-col items-center justify-center gap-4 p-6">
-            <div className="flex h-16 w-16 items-center justify-center rounded-full border border-(--gold-500) bg-white text-(--green-700) shadow-[0_12px_24px_rgba(7,70,43,0.16)]">
-              <IconCheck />
-            </div>
-            <TrailChips trail={trail} size="large" />
-          </div>
-        ) : (
-          <div className="relative z-10 flex-1 overflow-y-auto">
+        <div className="relative z-10 flex-1 overflow-y-auto">
             <TileGrid nodes={currentNodes} onTap={handleTileTap} />
           </div>
-        )}
 
         <div className="relative z-10 mt-auto border-t border-(--line-soft) bg-white/90 p-3 backdrop-blur-sm">
           {trail.length > 0 && !isLeaf ? <TrailChips trail={trail} /> : trail.length === 0 ? <div className="h-12" /> : null}
-          <button
-            onClick={() => setShowOutput(true)}
-            disabled={!canGenerate}
-            title="Speak"
-            aria-label="Speak"
-            className="mt-2.5 flex w-full items-center justify-center rounded-[14px] border border-(--gold-500) bg-[linear-gradient(145deg,#1a9a68,#14714f)] py-3 text-white shadow-[0_10px_20px_rgba(7,70,43,0.2)] transition-all hover:-translate-y-0.5 disabled:cursor-default disabled:border-slate-300 disabled:bg-slate-100 disabled:text-slate-700 disabled:shadow-none disabled:hover:translate-y-0 disabled:hover:border-slate-300"
-          >
-            <IconSpeaker />
-          </button>
+          <div className="flex justify-center">
+            <button
+              onClick={() => setShowOutput(true)}
+              disabled={!canGenerate}
+              title="Speak"
+              aria-label="Speak"
+              className="flex h-20 w-20 items-center justify-center rounded-full border-2 border-(--gold-500) bg-[linear-gradient(145deg,#1a9a68,#14714f)] shadow-[0_12px_32px_rgba(7,70,43,0.3)] transition-all hover:-translate-y-1 hover:shadow-[0_16px_36px_rgba(7,70,43,0.35)] disabled:border-slate-300 disabled:bg-slate-200 disabled:shadow-none"
+            >
+              <Speech size={36} color="white" strokeWidth={1.5} />
+            </button>
+          </div>
         </div>
       </div>
     </DesktopLayout>
