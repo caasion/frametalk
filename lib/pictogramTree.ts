@@ -2,6 +2,7 @@ export type PictogramNode = {
   id: string;
   label: string;
   arasaacKeyword: string;
+  arasaacId?: number; // Optional explicit ARASAAC pictogram id override for this node
   llmContext?: string; // Extra descriptive context to help the LLM generate a full, accurate sentence
   children?: PictogramNode[];
 };
@@ -9,7 +10,7 @@ export type PictogramNode = {
 // ─── WHO selector (final level on relevant paths) ────────────────────────────
 
 const whoIsThis: PictogramNode[] = [
-  { id: "who-me",     label: "Me",           arasaacKeyword: "myself", llmContext: "The subject of the request is the speaker." },
+  { id: "who-me",     label: "Me",           arasaacKeyword: "myself", arasaacId: 6632, llmContext: "The subject of the request is the speaker." },
   { id: "who-mother", label: "My mother",    arasaacKeyword: "mother", llmContext: "The subject of the request is the speaker's mother." },
   { id: "who-father", label: "My father",    arasaacKeyword: "father", llmContext: "The subject of the request is the speaker's father." },
   { id: "who-child",  label: "My child",     arasaacKeyword: "child",  llmContext: "The subject of the request is the speaker's child." },
@@ -20,8 +21,9 @@ const whoIsThis: PictogramNode[] = [
 // ─── SEVERITY (routes to Who) ────────────────────────────────────────────────
 
 const severity: PictogramNode[] = [
-  { id: "sev-little", label: "A little",       arasaacKeyword: "little",    llmContext: "The symptom severity is mild.", children: whoIsThis },
-  { id: "sev-lot",    label: "A lot",          arasaacKeyword: "very much", llmContext: "The symptom severity is severe or intense.", children: whoIsThis },
+  { id: "sev-little", label: "A little",       arasaacKeyword: "little",    arasaacId: 4716, llmContext: "The symptom severity is mild.", children: whoIsThis },
+  { id: "sev-medium", label: "Medium",         arasaacKeyword: "medium",    arasaacId: 4693, llmContext: "The symptom severity is moderate.", children: whoIsThis },
+  { id: "sev-lot",    label: "A lot",          arasaacKeyword: "very much", arasaacId: 4658, llmContext: "The symptom severity is severe or intense.", children: whoIsThis },
   { id: "sev-since",  label: "Since yesterday",arasaacKeyword: "yesterday", llmContext: "The symptom has been ongoing since yesterday.", children: whoIsThis },
   { id: "sev-days",   label: "Many days",      arasaacKeyword: "calendar",  llmContext: "The symptom has been ongoing for multiple days.", children: whoIsThis },
 ];
@@ -71,7 +73,7 @@ const chestSymptoms: PictogramNode[] = [
 const stomachSymptoms: PictogramNode[] = [
   symptom("stom-pain",     "Stomach pain", "stomach",  "The patient is experiencing stomach pain."),
   symptom("stom-nausea",   "Nausea",       "nausea",   "The patient is feeling nauseous."),
-  symptom("stom-vomit",    "Vomiting",     "vomiting", "The patient has been vomiting."),
+  { id: "stom-vomit", label: "Vomiting", arasaacKeyword: "vomiting", arasaacId: 7303, llmContext: "The patient has been vomiting.", children: severity },
   symptom("stom-diarrhea", "Diarrhea",     "diarrhea", "The patient is experiencing diarrhea."),
   symptom("stom-noeat",    "Cannot eat",   "eat",      "The patient is unable to eat."),
 ];
@@ -90,7 +92,6 @@ const appointmentReasons: PictogramNode[] = [
 
 const pharmacyNeeds: PictogramNode[] = [
   logisticWithWho("pharm-getmed",  "Pick up medicine",   "medicine",   "The user needs to pick up a new prescription medicine."),
-  logisticWithWho("pharm-refill",  "Refill medicine",    "medicine",   "The user needs to refill an existing prescription."),
   logisticWithWho("pharm-ask",     "Ask about medicine", "pharmacist", "The user has a question for the pharmacist about a medication."),
   logisticWithWho("pharm-allergy", "Medicine allergy",   "allergy",    "The user is reporting a medication allergy."),
 ];
@@ -110,7 +111,7 @@ const hospitalReasons: PictogramNode[] = [
 const emergencyProblems: PictogramNode[] = [
   directAction("emg-breathe",   "Cannot breathe", "breathe",     "CRITICAL MEDICAL EMERGENCY: The person is unable to breathe."),
   directAction("emg-bleeding",  "Bleeding badly", "bleeding",    "CRITICAL MEDICAL EMERGENCY: The person is experiencing severe bleeding."),
-  directAction("emg-conscious", "Unconscious",    "unconscious", "CRITICAL MEDICAL EMERGENCY: The person has lost consciousness."),
+  { id: "emg-conscious", label: "Unconscious", arasaacKeyword: "unconscious", arasaacId: 38054, llmContext: "CRITICAL MEDICAL EMERGENCY: The person has lost consciousness." },
   directAction("emg-chest",     "Chest pain",     "chest pain",  "CRITICAL MEDICAL EMERGENCY: The person is having severe chest pain, potentially a heart attack."),
 ];
 
@@ -127,7 +128,7 @@ const emergencyChildren: PictogramNode[] = [
 // ─── 🍞 FOOD ──────────────────────────────────────────────────────────────────
 
 const groceryShopping: PictogramNode[] = [
-  directAction("groc-where", "Where is this?",  "where",    "The user is at a shop and needs help finding a specific item."),
+  { id: "groc-where", label: "Where is this?", arasaacKeyword: "where", arasaacId: 32872, llmContext: "The user is at a shop and needs help finding a specific item." },
   directAction("groc-price", "How much?",       "price",    "The user wants to know the price of an item."),
   directAction("groc-halal", "Is this halal?",  "question", "The user is asking if a specific food item is certified Halal."),
 ];
@@ -163,7 +164,7 @@ const homeChildren: PictogramNode[] = [
 // ─── 🚌 TRANSPORT (All Direct Actions) ────────────────────────────────────────
 
 const howToRideTransit: PictogramNode[] = [
-  directAction("ride-where",  "Where does this go?",  "where",    "The user is asking for the destination of the current bus or train."),
+  { id: "ride-where", label: "Where does this go?", arasaacKeyword: "where", arasaacId: 32872, llmContext: "The user is asking for the destination of the current bus or train." },
   directAction("ride-pay",    "How do I pay?",        "pay",      "The user is asking how to pay the fare for public transit."),
 ];
 
@@ -192,9 +193,9 @@ const workChildren: PictogramNode[] = [
 // ─── 🏥 HEALTH (top-level children) ──────────────────────────────────────────
 
 const healthChildren: PictogramNode[] = [
-  { id: "health-hospital", label: "Hospital / Clinic", arasaacKeyword: "hospital",  llmContext: "The user is at or needs to go to a hospital or clinic.", children: hospitalReasons },
+  { id: "health-hospital", label: "Hospital / Clinic", arasaacKeyword: "hospital", arasaacId: 3116, llmContext: "The user is at or needs to go to a hospital or clinic.", children: hospitalReasons },
   { id: "health-pharmacy", label: "Pharmacy",          arasaacKeyword: "pharmacy",  llmContext: "The user is at or needs to go to a pharmacy.", children: pharmacyNeeds },
-  { id: "health-body",     label: "Body pain",         arasaacKeyword: "pain",      llmContext: "The user is experiencing physical pain or discomfort.", children: bodyParts },
+  { id: "health-body",     label: "Body pain",         arasaacKeyword: "pain",      arasaacId: 38423, llmContext: "The user is experiencing physical pain or discomfort.", children: bodyParts },
   { id: "health-feelings", label: "Feelings",          arasaacKeyword: "feelings",  llmContext: "The user wants to express emotional feelings.", children: feelings },
 ];
 
@@ -205,6 +206,6 @@ export const pictogramTree: PictogramNode[] = [
   { id: "cat-emergency", label: "Emergency", arasaacKeyword: "emergency", llmContext: "The overarching context is an urgent emergency requiring immediate response.", children: emergencyChildren },
   { id: "cat-food",      label: "Food",      arasaacKeyword: "food",      llmContext: "The overarching context is food, groceries, or dietary needs.", children: foodChildren },
   { id: "cat-home",      label: "Home",      arasaacKeyword: "house",     llmContext: "The overarching context is housing, rent, and home maintenance.", children: homeChildren },
-  { id: "cat-transport", label: "Transport", arasaacKeyword: "bus stop",  llmContext: "The overarching context is transportation and navigation.", children: transportChildren },
+  { id: "cat-transport", label: "Transport", arasaacKeyword: "bus stop", arasaacId: 10351, llmContext: "The overarching context is transportation and navigation.", children: transportChildren },
   { id: "cat-work",      label: "Work",      arasaacKeyword: "work",      llmContext: "The overarching context is employment, jobs, and labor rights.", children: workChildren },
 ];

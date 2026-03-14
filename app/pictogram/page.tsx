@@ -91,8 +91,16 @@ function IconMic() {
   );
 }
 
-function PictogramImage({ keyword, size = 56 }: { keyword: string; size?: number }) {
-  const { url, loading } = useArasaacImage(keyword);
+function PictogramImage({
+  keyword,
+  preferredId,
+  size = 56,
+}: {
+  keyword: string;
+  preferredId?: number;
+  size?: number;
+}) {
+  const { url, loading } = useArasaacImage(keyword, { preferredId });
 
   if (loading) {
     return (
@@ -144,7 +152,7 @@ function PictogramTile({
       aria-label={node.label}
     >
       <div className="relative flex h-21 w-full items-center justify-center rounded-[18px] bg-[radial-gradient(circle_at_30%_20%,#e4f4ce,#d8efe1)]">
-        <PictogramImage keyword={node.arasaacKeyword} size={64} />
+        <PictogramImage keyword={node.arasaacKeyword} preferredId={node.arasaacId} size={64} />
       </div>
       <div className="mt-2 text-center text-[12px] font-semibold text-(--green-800)">{node.label}</div>
     </button>
@@ -803,7 +811,7 @@ export default function PictogramPage() {
         )}
 
         <div className="relative z-10 mt-auto border-t border-(--line-soft) bg-white/90 p-3 backdrop-blur-sm">
-          {trail.length > 0 && !isLeaf ? <TrailChips trail={trail} /> : trail.length === 0 ? <div className="h-[48px]" /> : null}
+          {trail.length > 0 && !isLeaf ? <TrailChips trail={trail} /> : trail.length === 0 ? <div className="h-12" /> : null}
           <button
             onClick={() => setShowOutput(true)}
             disabled={!canGenerate}

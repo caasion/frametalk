@@ -4,6 +4,10 @@ A speech practice app that helps Rohingya refugees and low-English-literacy lear
 
 **How it works:** Pick pictures → Get a sentence → Record yourself → See how you did.
 
+## Setup Guide
+
+For the exact end-to-end setup and run steps on any computer, see `build.md` (buildme guide).
+
 ---
 
 ## What You'll Need Before Starting
