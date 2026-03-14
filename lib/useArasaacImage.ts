@@ -4,13 +4,30 @@ import { useState, useEffect } from "react";
 
 const cache = new Map<string, string>();
 
-export function useArasaacImage(keyword: string): { url: string | null; loading: boolean } {
-  const [url, setUrl] = useState<string | null>(cache.get(keyword) ?? null);
-  const [loading, setLoading] = useState(!cache.has(keyword));
+type UseArasaacImageOptions = {
+  preferredId?: number;
+};
+
+export function useArasaacImage(
+  keyword: string,
+  options?: UseArasaacImageOptions,
+): { url: string | null; loading: boolean } {
+  const cacheKey = `${keyword}::${options?.preferredId ?? ""}`;
+  const [url, setUrl] = useState<string | null>(cache.get(cacheKey) ?? null);
+  const [loading, setLoading] = useState(!cache.has(cacheKey));
 
   useEffect(() => {
-    if (cache.has(keyword)) {
-      setUrl(cache.get(keyword)!);
+    if (cache.has(cacheKey)) {
+      setUrl(cache.get(cacheKey)!);
+      setLoading(false);
+      return;
+    }
+
+    // Explicit override should not depend on search result ordering or matching.
+    if (typeof options?.preferredId === "number") {
+      const forcedUrl = `https://static.arasaac.org/pictograms/${options.preferredId}/${options.preferredId}_2500.png`;
+      cache.set(cacheKey, forcedUrl);
+      setUrl(forcedUrl);
       setLoading(false);
       return;
     }
@@ -25,7 +42,7 @@ export function useArasaacImage(keyword: string): { url: string | null; loading:
         if (Array.isArray(data) && data.length > 0) {
           const id = data[0]._id;
           const imageUrl = `https://static.arasaac.org/pictograms/${id}/${id}_2500.png`;
-          cache.set(keyword, imageUrl);
+          cache.set(cacheKey, imageUrl);
           setUrl(imageUrl);
         }
         setLoading(false);
@@ -37,7 +54,7 @@ export function useArasaacImage(keyword: string): { url: string | null; loading:
     return () => {
       cancelled = true;
     };
-  }, [keyword]);
+  }, [cacheKey, keyword, options?.preferredId]);
 
   return { url, loading };
 }
