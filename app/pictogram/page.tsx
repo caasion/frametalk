@@ -6,28 +6,18 @@ import { pictogramTree, PictogramNode } from "@/lib/pictogramTree";
 import { useArasaacImage } from "@/lib/useArasaacImage";
 import { useSpeech } from "@/hooks/useSpeech";
 
-// ─── Steps for this flow ──────────────────────────────────────────────────────
-
-const PICTOGRAM_STEPS = [
-  { num: 1, label: "Pick topic" },
-  { num: 2, label: "Build sentence" },
-  { num: 3, label: "Say it" },
-];
-
-// ─── Icons ────────────────────────────────────────────────────────────────────
-
 function IconChevronSmall() {
   return (
-    <svg className="h-3 w-3 shrink-0 text-white/50" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+    <svg className="h-3 w-3 shrink-0 text-(--gold-200)" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
       <polyline points="9 18 15 12 9 6" />
     </svg>
   );
 }
 
-function IconSpeechBubble() {
+function IconCheck() {
   return (
-    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+      <polyline points="20 6 9 17 4 12" />
     </svg>
   );
 }
@@ -63,13 +53,21 @@ function IconBack() {
 
 // ─── Pictogram tile image ─────────────────────────────────────────────────────
 
+function IconPlay() {
+  return (
+    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+      <path d="M8 5v14l11-7-11-7z" />
+    </svg>
+  );
+}
+
 function PictogramImage({ keyword, size = 56 }: { keyword: string; size?: number }) {
   const { url, loading } = useArasaacImage(keyword);
 
   if (loading) {
     return (
       <div
-        className="animate-pulse rounded-lg bg-[#E1F5EE]"
+        className="animate-pulse rounded-xl bg-[linear-gradient(130deg,#e2f2c7,#d8efe1)]"
         style={{ width: size, height: size }}
       />
     );
@@ -78,7 +76,7 @@ function PictogramImage({ keyword, size = 56 }: { keyword: string; size?: number
   if (!url) {
     return (
       <div
-        className="flex items-center justify-center rounded-lg bg-[#E1F5EE] text-[10px] text-[#888780]"
+        className="flex items-center justify-center rounded-xl bg-[linear-gradient(130deg,#e2f2c7,#d8efe1)] text-[10px] text-(--green-700)"
         style={{ width: size, height: size }}
       >
         ?
@@ -107,19 +105,23 @@ function Breadcrumb({
   onTap: (index: number) => void;
 }) {
   if (trail.length === 0) {
-    return <div className="text-[13px] text-white/70">Choose a topic</div>;
+    return <div className="h-10" />;
   }
 
   return (
-    <div className="flex items-center gap-1 overflow-x-auto">
+    <div className="no-scrollbar flex h-10 items-center gap-1 overflow-x-auto">
       {trail.map((node, i) => (
         <React.Fragment key={node.id}>
           {i > 0 && <IconChevronSmall />}
           <button
             onClick={() => onTap(i)}
-            className="shrink-0 cursor-pointer rounded-md p-0.5 transition-colors hover:bg-white/10"
+            className="shrink-0 cursor-pointer rounded-full border border-(--line-soft) bg-white/90 px-1.5 py-0.5 transition-all hover:-translate-y-0.5 hover:border-(--gold-500)"
+            aria-label={`Go to ${node.label}`}
           >
-            <PictogramImage keyword={node.arasaacKeyword} size={36} />
+            <span className="flex items-center gap-1.5">
+              <PictogramImage keyword={node.arasaacKeyword} size={30} />
+              <span className="text-[10px] font-semibold text-(--green-800)">{node.label}</span>
+            </span>
           </button>
         </React.Fragment>
       ))}
@@ -131,21 +133,24 @@ function Breadcrumb({
 
 function PictogramTile({
   node,
+  index,
   onTap,
 }: {
   node: PictogramNode;
+  index: number;
   onTap: (node: PictogramNode) => void;
 }) {
   return (
     <button
       onClick={() => onTap(node)}
-      className="flex cursor-pointer flex-col items-center justify-center gap-1.5 rounded-[16px] border-2 border-transparent bg-white p-3 shadow-[0_1px_3px_rgba(0,0,0,0.06)] transition-all hover:border-[#1D9E75] hover:shadow-[0_2px_8px_rgba(29,158,117,0.15)]"
-      style={{ minHeight: 100 }}
+      className="pictogram-card animate-card-in flex cursor-pointer flex-col items-center justify-center rounded-[22px] border border-(--line-soft) bg-[linear-gradient(155deg,#ffffff,#f8fff4)] p-3"
+      style={{ minHeight: 124, animationDelay: `${index * 40}ms` }}
+      aria-label={node.label}
     >
-      <PictogramImage keyword={node.arasaacKeyword} size={56} />
-      <div className="text-[10px] font-bold uppercase tracking-[0.5px] text-[#2C2C2A]">
-        {node.label}
+      <div className="relative flex h-21 w-full items-center justify-center rounded-[18px] bg-[radial-gradient(circle_at_30%_20%,#e4f4ce,#d8efe1)]">
+        <PictogramImage keyword={node.arasaacKeyword} size={64} />
       </div>
+      <div className="mt-2 text-center text-[12px] font-semibold text-(--green-800)">{node.label}</div>
     </button>
   );
 }
@@ -158,9 +163,9 @@ function TileGrid({
   onTap: (node: PictogramNode) => void;
 }) {
   return (
-    <div className="grid grid-cols-2 gap-2.5 p-3">
-      {nodes.map((node) => (
-        <PictogramTile key={node.id} node={node} onTap={onTap} />
+    <div className="grid grid-cols-2 gap-3 p-4">
+      {nodes.map((node, index) => (
+        <PictogramTile key={node.id} node={node} index={index} onTap={onTap} />
       ))}
     </div>
   );
@@ -170,14 +175,14 @@ function TileGrid({
 
 function TrailChips({ trail }: { trail: PictogramNode[] }) {
   return (
-    <div className="flex flex-wrap items-center gap-1.5 px-3">
+    <div className="flex flex-wrap items-center justify-center gap-1.5 px-3">
       {trail.map((node) => (
         <div
           key={node.id}
-          className="flex items-center gap-1 rounded-full bg-[#E1F5EE] px-2 py-1"
+          className="flex items-center gap-1 rounded-full border border-(--line-soft) bg-white px-2 py-1"
         >
           <PictogramImage keyword={node.arasaacKeyword} size={18} />
-          <span className="text-[10px] font-bold text-[#0F6E56]">{node.label}</span>
+          <span className="text-[10px] font-semibold text-(--green-800)">{node.label}</span>
         </div>
       ))}
     </div>
@@ -233,75 +238,67 @@ function OutputScreen({
   }, [sentence, speak]);
 
   return (
-    <div className="flex h-full flex-col">
-      {/* Header */}
-      <div className="bg-[#1D9E75] px-4 pb-3 pt-4">
-        <div className="mb-[3px] text-[10px] font-bold uppercase tracking-[1.5px] text-white/70">
-          FrameTalk
-        </div>
+    <div className="flex h-full flex-col bg-[linear-gradient(170deg,#edf8dc_0%,#f9fff4_45%,#ffffff_100%)]">
+      <div className="px-4 pb-3 pt-4">
         <Breadcrumb trail={trail} onTap={() => {}} />
       </div>
 
-      {/* Content */}
       <div className="flex flex-1 flex-col items-center justify-center gap-5 p-6">
-        {/* Sentence */}
         {loading ? (
           <div className="flex flex-col items-center gap-3">
-            <div className="h-6 w-48 animate-pulse rounded-lg bg-[#E1F5EE]" />
-            <div className="h-6 w-32 animate-pulse rounded-lg bg-[#E1F5EE]" />
+            <div className="h-6 w-48 animate-pulse rounded-lg bg-[linear-gradient(130deg,#e2f2c7,#d8efe1)]" />
+            <div className="h-6 w-32 animate-pulse rounded-lg bg-[linear-gradient(130deg,#e2f2c7,#d8efe1)]" />
           </div>
         ) : (
-          <div className="text-center text-[24px] font-bold leading-[1.3] text-[#2C2C2A]">
+          <div className="animate-rise-in rounded-[28px] border border-(--line-soft) bg-white/90 px-6 py-5 text-center font-(--font-display) text-[28px] leading-tight text-(--green-800) shadow-[0_14px_28px_rgba(7,70,43,0.12)]">
             {sentence}
           </div>
         )}
 
-        {/* Action buttons */}
         <div className="flex items-center gap-3">
           <button
             onClick={() => sentence && speak(sentence, { rate: 0.85, pitch: 1 })}
             disabled={loading}
-            className="flex h-12 w-12 cursor-pointer items-center justify-center rounded-full bg-[#E1F5EE] text-[#0F6E56] transition-colors hover:bg-[#d0ede2] disabled:opacity-50"
+            className="flex h-12 w-12 cursor-pointer items-center justify-center rounded-full border border-(--line-soft) bg-white text-(--green-700) shadow-[0_8px_18px_rgba(7,70,43,0.1)] transition-all hover:-translate-y-0.5 hover:border-(--gold-500) disabled:opacity-50"
+            aria-label="Speak"
           >
             <IconSpeaker />
           </button>
           <button
             onClick={fetchSentence}
             disabled={loading}
-            className="flex h-12 w-12 cursor-pointer items-center justify-center rounded-full bg-[#E1F5EE] text-[#0F6E56] transition-colors hover:bg-[#d0ede2] disabled:opacity-50"
+            className="flex h-12 w-12 cursor-pointer items-center justify-center rounded-full border border-(--line-soft) bg-white text-(--green-700) shadow-[0_8px_18px_rgba(7,70,43,0.1)] transition-all hover:-translate-y-0.5 hover:border-(--gold-500) disabled:opacity-50"
+            aria-label="Refresh"
           >
             <IconRefresh />
           </button>
         </div>
       </div>
 
-      {/* Bottom */}
       <div className="mt-auto flex flex-col gap-2.5 p-3">
         <button
           onClick={onBack}
-          className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-[12px] border border-[#d3d1c7] bg-white px-4 py-2.5 text-[12px] font-bold text-[#2C2C2A] transition-colors hover:bg-[#F7F6F2]"
+          className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-[14px] border border-(--line-soft) bg-white px-4 py-3 text-[12px] font-semibold text-(--green-800) transition-colors hover:bg-(--surface-soft)"
         >
           <IconBack />
-          Back to pictograms
+          <span>Grid</span>
         </button>
         <button
           onClick={() => console.log("Practice speaking")}
-          className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-[12px] bg-[#1D9E75] px-4 py-3 text-[13px] font-extrabold text-white transition-opacity hover:opacity-90"
+          className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-[14px] border border-(--gold-500) bg-[linear-gradient(145deg,#1a9a68,#14714f)] px-4 py-3 text-[13px] font-semibold text-white shadow-[0_10px_20px_rgba(7,70,43,0.2)] transition-all hover:-translate-y-0.5"
         >
-          Practice speaking &rarr;
+          <IconPlay />
+          <span>Play</span>
         </button>
       </div>
     </div>
   );
 }
 
-// ─── Main page ────────────────────────────────────────────────────────────────
-
 export default function PictogramPage() {
   const [trail, setTrail] = useState<PictogramNode[]>([]);
   const [showOutput, setShowOutput] = useState(false);
 
-  // Current nodes to display
   const currentNodes = (() => {
     if (trail.length === 0) return pictogramTree;
     const lastNode = trail[trail.length - 1];
@@ -311,11 +308,9 @@ export default function PictogramPage() {
   const handleTileTap = (node: PictogramNode) => {
     const newTrail = [...trail, node];
     setTrail(newTrail);
-    // If leaf node (no children), trail is complete — user can generate
   };
 
   const handleBreadcrumbTap = (index: number) => {
-    // Go back to that level — show children of the tapped node
     setTrail(trail.slice(0, index + 1));
   };
 
@@ -330,59 +325,54 @@ export default function PictogramPage() {
 
   if (showOutput) {
     return (
-      <DesktopLayout currentStep={2} steps={PICTOGRAM_STEPS}>
+      <DesktopLayout>
         <OutputScreen trail={trail} onBack={() => setShowOutput(false)} />
       </DesktopLayout>
     );
   }
 
   return (
-    <DesktopLayout currentStep={1} steps={PICTOGRAM_STEPS}>
-      <div className="flex min-h-[700px] flex-col">
-        {/* Header */}
-        <div className="bg-[#1D9E75] px-4 pb-3 pt-4">
-          <div className="mb-[3px] text-[10px] font-bold uppercase tracking-[1.5px] text-white/70">
-            FrameTalk
-          </div>
+    <DesktopLayout>
+      <div className="relative flex h-full flex-col bg-[linear-gradient(170deg,#edf8dc_0%,#f9fff4_42%,#ffffff_100%)]">
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-20 bg-[linear-gradient(180deg,rgba(20,113,79,0.08),rgba(20,113,79,0))]" />
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-[linear-gradient(0deg,rgba(183,146,44,0.1),rgba(183,146,44,0))]" />
+
+        <div className="relative z-10 px-4 pb-3 pt-4">
           <Breadcrumb trail={trail} onTap={handleBreadcrumbTap} />
         </div>
 
-        {/* Back button when navigated deeper */}
         {trail.length > 0 && (
           <button
             onClick={handleGoBack}
-            className="flex cursor-pointer items-center gap-1.5 px-3 pt-2.5 pb-0 text-[11px] font-bold text-[#0F6E56] transition-colors hover:text-[#1D9E75]"
+            className="relative z-10 ml-4 flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border border-(--line-soft) bg-white text-(--green-700) transition-all hover:-translate-y-0.5 hover:border-(--gold-500)"
+            aria-label="Back"
           >
             <IconBack />
-            Back
           </button>
         )}
 
-        {/* Grid */}
         {isLeaf ? (
-          // Leaf reached — show confirmation
           <div className="flex flex-1 flex-col items-center justify-center gap-3 p-6">
-            <div className="text-center text-[13px] font-bold text-[#0F6E56]">
-              Selection complete
+            <div className="flex h-12 w-12 items-center justify-center rounded-full border border-(--gold-500) bg-white text-(--green-700) shadow-[0_10px_20px_rgba(7,70,43,0.12)]">
+              <IconCheck />
             </div>
             <TrailChips trail={trail} />
           </div>
         ) : (
-          <div className="flex-1 overflow-y-auto">
+          <div className="relative z-10 flex-1 overflow-y-auto">
             <TileGrid nodes={currentNodes} onTap={handleTileTap} />
           </div>
         )}
 
-        {/* Bottom generate bar */}
         {canGenerate && (
-          <div className="mt-auto border-t border-[#E1F5EE] bg-white p-3">
+          <div className="relative z-10 mt-auto border-t border-(--line-soft) bg-white/90 p-3 backdrop-blur-sm">
             <TrailChips trail={trail} />
             <button
               onClick={() => setShowOutput(true)}
-              className="mt-2.5 flex w-full cursor-pointer items-center justify-center gap-2 rounded-[12px] bg-[#1D9E75] px-4 py-3 text-[13px] font-extrabold text-white transition-opacity hover:opacity-90"
+              className="mt-2.5 flex w-full cursor-pointer items-center justify-center gap-2 rounded-[14px] border border-(--gold-500) bg-[linear-gradient(145deg,#1a9a68,#14714f)] px-4 py-3 text-[13px] font-semibold text-white shadow-[0_10px_20px_rgba(7,70,43,0.2)] transition-all hover:-translate-y-0.5"
             >
-              <IconSpeechBubble />
-              Build my sentence
+              <IconPlay />
+              <span>Speak</span>
             </button>
           </div>
         )}
