@@ -632,10 +632,16 @@ function OutputScreen({
   const [loading, setLoading] = useState(true);
   const [showPractice, setShowPractice] = useState(false);
   const [wordPictograms, setWordPictograms] = useState<WordPictogram[]>([]);
+  const [imageSrc, setImageSrc] = useState<string | null>(null);
+  const [imageError, setImageError] = useState(false);
+  const imageBlobUrlRef = useRef<string | null>(null);
+  const isImageLoading = !!sentence && imageSrc === null && !imageError;
 
   const fetchSentence = useCallback(async () => {
     setLoading(true);
     setSentence(null);
+    setImageSrc(null);
+    setImageError(false);
     setShowPractice(false);
     try {
       const res = await fetch("/api/generate", {
@@ -678,6 +684,42 @@ function OutputScreen({
     }
   }, [sentence, speak, showPractice]);
 
+  // Fetch image when sentence changes
+  useEffect(() => {
+    if (!sentence) return;
+
+    const controller = new AbortController();
+    setImageSrc(null);
+    setImageError(false);
+
+    const prompt = `A single clean pictogram illustration showing: ${sentence}. Style: flat 2D vector art, thick outlines, solid colors, white background. No text, no letters, no words, no numbers anywhere in the image. One clear focal subject only, no background clutter.`;
+    fetch(`/api/image?prompt=${encodeURIComponent(prompt)}`, { signal: controller.signal })
+      .then((res) => {
+        if (!res.ok || !res.headers.get("content-type")?.startsWith("image/")) {
+          throw new Error("non-image response");
+        }
+        return res.blob();
+      })
+      .then((blob) => {
+        if (imageBlobUrlRef.current) URL.revokeObjectURL(imageBlobUrlRef.current);
+        const objectUrl = URL.createObjectURL(blob);
+        imageBlobUrlRef.current = objectUrl;
+        setImageSrc(objectUrl);
+      })
+      .catch((err) => {
+        if (err.name === "AbortError") return;
+        setImageError(true);
+      });
+
+    return () => {
+      controller.abort();
+      if (imageBlobUrlRef.current) {
+        URL.revokeObjectURL(imageBlobUrlRef.current);
+        imageBlobUrlRef.current = null;
+      }
+    };
+  }, [sentence, trail]);
+
   if (showPractice && wordPictograms.length > 0) {
     return <SpeechPractice words={wordPictograms} onBack={() => setShowPractice(false)} onGoHome={onGoHome} />;
   }
@@ -711,6 +753,29 @@ function OutputScreen({
         ) : (
           <div className="animate-rise-in rounded-[28px] border border-(--line-soft) bg-white/90 px-6 py-5 text-center font-(--font-display) text-[28px] leading-tight text-(--green-800) shadow-[0_14px_28px_rgba(7,70,43,0.12)]">
             {sentence}
+          </div>
+        )}
+
+        {/* Contextual illustration */}
+        {!loading && (isImageLoading || imageSrc || imageError) && (
+          <div className="w-full max-w-xs overflow-hidden rounded-[22px] border border-(--line-soft) bg-[linear-gradient(130deg,#e2f2c7,#d8efe1)] shadow-[0_8px_18px_rgba(7,70,43,0.09)]">
+            {isImageLoading && (
+              <div className="h-48 w-full animate-pulse rounded-[22px] bg-[linear-gradient(130deg,#e2f2c7,#d8efe1)]" />
+            )}
+            {imageError && (
+              <div className="flex h-48 w-full items-center justify-center rounded-[22px]">
+                <span className="text-[12px] font-semibold text-(--green-700)/60">Image unavailable</span>
+              </div>
+            )}
+            {imageSrc && (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img
+                src={imageSrc}
+                alt={sentence ?? ""}
+                className="block w-full rounded-[22px] object-cover opacity-100 transition-opacity duration-500"
+                style={{ aspectRatio: "1 / 1" }}
+              />
+            )}
           </div>
         )}
 
