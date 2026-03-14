@@ -20,7 +20,7 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 interface Pictogram {
   id: string;
   label: string;
-  imageUrl: string;
+  imageUrl: string | null;
 }
 
 interface WordScore {
@@ -34,7 +34,7 @@ type WordStatus = "pending" | "active" | "correct" | "incorrect";
 interface WordState {
   id: string;
   label: string;
-  imageUrl: string;
+  imageUrl: string | null;
   status: WordStatus;
   score: number;
   isOmitted: boolean;
@@ -280,13 +280,19 @@ export default function PronunciationFeedback({
             }}
             aria-label={entry.label}
           >
-            {/* Pictogram image */}
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={entry.imageUrl}
-              alt=""
-              className="pointer-events-none z-10 h-[52px] w-[52px] object-contain"
-            />
+            {/* Pictogram image or word fallback */}
+            {entry.imageUrl ? (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img
+                src={entry.imageUrl}
+                alt=""
+                className="pointer-events-none z-10 h-[52px] w-[52px] object-contain"
+              />
+            ) : (
+              <span className="pointer-events-none z-10 text-[13px] font-bold text-[#2C2C2A]">
+                {entry.label}
+              </span>
+            )}
 
             {/* Score ring (circular progress) */}
             {(entry.status === "correct" || entry.status === "incorrect") && (
