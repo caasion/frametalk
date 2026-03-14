@@ -1,0 +1,271 @@
+{
+  "categories": [
+    {
+      "name": "Health & Body",
+      "subcategories": [
+        {
+          "name": "Body Parts",
+          "items": [
+            "Head",
+            "Eyes",
+            "Throat",
+            "Chest",
+            "Stomach",
+            "Back",
+            "Arm",
+            "Leg",
+            "Skin",
+            "Whole body"
+          ]
+        },
+        {
+          "name": "Symptoms",
+          "items": [
+            "Pain",
+            "Fever",
+            "Cough",
+            "Trouble breathing",
+            "Nausea",
+            "Vomiting",
+            "Diarrhea",
+            "Dizziness",
+            "Rash",
+            "Swelling",
+            "Tired / Weak"
+          ]
+        },
+        {
+          "name": "Pain Types",
+          "items": [
+            "Sharp pain",
+            "Burning pain",
+            "Pressure",
+            "Cramping"
+          ]
+        },
+        {
+          "name": "Injuries",
+          "items": [
+            "Cut",
+            "Burn",
+            "Bruise",
+            "Bleeding",
+            "Broken bone",
+            "Fall"
+          ]
+        },
+        {
+          "name": "Medical Needs",
+          "items": [
+            "I need a doctor",
+            "I need medicine",
+            "I need a hospital",
+            "I need an ambulance",
+            "I am allergic",
+            "I am pregnant"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Food & Drink",
+      "subcategories": [
+        {
+          "name": "Food Types",
+          "items": [
+            "Fruit",
+            "Vegetables",
+            "Meat",
+            "Bread / Rice",
+            "Snacks"
+          ]
+        },
+        {
+          "name": "Drinks",
+          "items": [
+            "Water",
+            "Juice",
+            "Tea",
+            "Coffee",
+            "Milk"
+          ]
+        },
+        {
+          "name": "Food Needs",
+          "items": [
+            "I am hungry",
+            "I am thirsty",
+            "Food allergy",
+            "No pork"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Home & Living",
+      "subcategories": [
+        {
+          "name": "Housing",
+          "items": [
+            "Apartment",
+            "House",
+            "Shelter",
+            "Room"
+          ]
+        },
+        {
+          "name": "Utilities",
+          "items": [
+            "Electricity",
+            "Water",
+            "Heating",
+            "Internet"
+          ]
+        },
+        {
+          "name": "Home Problems",
+          "items": [
+            "No electricity",
+            "No water",
+            "Leak",
+            "Broken appliance",
+            "Pest problem"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Transportation",
+      "subcategories": [
+        {
+          "name": "Transport Types",
+          "items": [
+            "Bus",
+            "Train",
+            "Taxi",
+            "Car",
+            "Walking"
+          ]
+        },
+        {
+          "name": "Directions",
+          "items": [
+            "Where is this",
+            "Left",
+            "Right",
+            "Straight",
+            "Near",
+            "Far"
+          ]
+        },
+        {
+          "name": "Transport Problems",
+          "items": [
+            "Late",
+            "Missed bus",
+            "Need ride"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Money & Shopping",
+      "subcategories": [
+        {
+          "name": "Shopping Locations",
+          "items": [
+            "Grocery store",
+            "Pharmacy",
+            "Clothing store"
+          ]
+        },
+        {
+          "name": "Payment",
+          "items": [
+            "Cash",
+            "Card"
+          ]
+        },
+        {
+          "name": "Price",
+          "items": [
+            "How much",
+            "Too expensive",
+            "Cheap"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "People & Communication",
+      "subcategories": [
+        {
+          "name": "Family",
+          "items": [
+            "Mother",
+            "Father",
+            "Child",
+            "Baby"
+          ]
+        },
+        {
+          "name": "Help",
+          "items": [
+            "I need help",
+            "Help me",
+            "Can you help"
+          ]
+        },
+        {
+          "name": "Basic Communication",
+          "items": [
+            "Thank you",
+            "Sorry",
+            "Please",
+            "I don't understand",
+            "Repeat please"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Safety & Emergency",
+      "subcategories": [
+        {
+          "name": "Danger",
+          "items": [
+            "Fire",
+            "Crime",
+            "Someone hurt",
+            "I am in danger"
+          ]
+        },
+        {
+          "name": "Emergency Services",
+          "items": [
+            "Police",
+            "Ambulance",
+            "Hospital"
+          ]
+        }
+      ]
+    }
+  ],
+  "descriptors": {
+    "severity": [
+      "Mild",
+      "Medium",
+      "Severe"
+    ],
+    "time": [
+      "Today",
+      "Yesterday",
+      "Many days"
+    ],
+    "frequency": [
+      "Once",
+      "Sometimes",
+      "Always"
+    ]
+  }
+}
