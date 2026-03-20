@@ -101,7 +101,7 @@ const feelings: PictogramNode[] = [
 ];
 
 const hospitalReasons: PictogramNode[] = [
-  { id: "hosp-see",         label: "See doctor / nurse", label_2: "Daktor / Nars saita", arasaacKeyword: "doctor",      llmContext: "The user needs to see a medical professional.", children: [{ id: "role-doctor", label: "Doctor", label_2: "Daktor", arasaacKeyword: "doctor", children: bodyParts }] },
+  { id: "hosp-see",         label: "See doctor / nurse", label_2: "Daktor / Nars saita", arasaacKeyword: "doctor",      llmContext: "The user needs to see a medical professional.", children: [{ id: "role-doctor", label: "Doctor", label_2: "Daktor", arasaacKeyword: "doctor", children: bodyParts }, { id: "role-nurse", label: "Nurse", label_2: "Nars", arasaacKeyword: "nurse", children: bodyParts }] },
   { id: "hosp-appointment", label: "I have appointment", label_2: "Anar epoinmen ase",   arasaacKeyword: "appointment", llmContext: "The user has a pre-scheduled appointment.", children: appointmentReasons },
 ];
 
