@@ -10,7 +10,7 @@ import {
   resolveArasaacImages,
   WordPictogram,
 } from "@/lib/resolveArasaacImages";
-import { Mic2, Speech, ArrowRight, RotateCcw, ArrowRightToLine, Check, X } from "lucide-react";
+import { Mic2, Speech, ArrowRight, RotateCcw, ArrowRightToLine, Check, X, Home, ArrowLeft } from "lucide-react";
 import { WavRecorder } from "@/lib/wavRecorder";
 
 function IconCheck() {
@@ -406,14 +406,20 @@ function SpeechPractice({
   if (allDone) {
     return (
       <div className="flex h-full flex-col items-center justify-center gap-6 bg-[linear-gradient(170deg,#edf8dc_0%,#f9fff4_45%,#ffffff_100%)] p-6">
-        <div className="text-6xl">🎉</div>
-        <div className="text-2xl font-extrabold text-(--green-700)">Great job!</div>
-        <div className="text-[13px] font-semibold text-(--green-600)">You said all the words!</div>
+        <div className="text-8xl">🎉</div>
+        <button
+          onClick={onGoHome}
+          aria-label="Go back to home"
+          title="Go back to home"
+          className="flex h-24 w-24 items-center justify-center rounded-full border-2 border-(--gold-500) bg-[linear-gradient(145deg,#1a9a68,#14714f)] shadow-[0_12px_32px_rgba(7,70,43,0.3)] transition-all hover:-translate-y-1 hover:shadow-[0_16px_36px_rgba(7,70,43,0.35)]"
+        >
+          <Home size={48} color="white" strokeWidth={2} />
+        </button>
         <button
           onClick={onBack}
-          className="w-full max-w-xs rounded-[14px] border border-(--gold-500) bg-[linear-gradient(145deg,#1a9a68,#14714f)] px-4 py-3 text-[13px] font-semibold text-white shadow-[0_10px_20px_rgba(7,70,43,0.2)] transition-all hover:-translate-y-0.5"
+          className="w-fit max-w-xs rounded-[14px] border border-(--gold-500) bg-[linear-gradient(145deg,#1a9a68,#14714f)] px-4 py-3 text-[13px] font-semibold text-white shadow-[0_10px_20px_rgba(7,70,43,0.2)] transition-all hover:-translate-y-0.5"
         >
-          Back to sentence
+          <ArrowLeft size={24} color="white" strokeWidth={2} />
         </button>
       </div>
     );
@@ -447,10 +453,10 @@ function SpeechPractice({
           <div
             key={i}
             className={`rounded-full transition-all duration-300 ${i < wordIndex
-                ? "h-3 w-8 bg-[#1a9a68]"
-                : i === wordIndex
-                  ? "h-3 w-8 bg-[#1a9a68]/60 ring-2 ring-[#1a9a68]/30"
-                  : "h-3 w-3 bg-[linear-gradient(130deg,#e2f2c7,#d8efe1)]"
+              ? "h-3 w-8 bg-[#1a9a68]"
+              : i === wordIndex
+                ? "h-3 w-8 bg-[#1a9a68]/60 ring-2 ring-[#1a9a68]/30"
+                : "h-3 w-3 bg-[linear-gradient(130deg,#e2f2c7,#d8efe1)]"
               }`}
           />
         ))}
@@ -486,8 +492,8 @@ function SpeechPractice({
                   key={i}
                   onClick={() => setSpeakPass(i)}
                   className={`rounded-2xl p-2 text-4xl transition-all duration-150 hover:scale-125 hover:opacity-100 active:scale-95 ${i === speakPass
-                      ? "opacity-100 bg-[#1a9a68]/10 ring-2 ring-[#1a9a68]/30"
-                      : "opacity-30"
+                    ? "opacity-100 bg-[#1a9a68]/10 ring-2 ring-[#1a9a68]/30"
+                    : "opacity-30"
                     }`}
                 >
                   {emoji}
@@ -519,10 +525,10 @@ function SpeechPractice({
               disabled={recordingState === "processing"}
               style={{ touchAction: "none" }}
               className={`relative flex h-28 w-28 items-center justify-center rounded-full border-2 transition-all ${recordingState === "recording"
-                  ? "scale-110 border-red-400 bg-[linear-gradient(145deg,#dc2626,#991b1b)] shadow-[0_12px_32px_rgba(220,38,38,0.4)]"
-                  : recordingState === "processing"
-                    ? "cursor-wait border-amber-400 bg-[linear-gradient(145deg,#d97706,#92400e)] opacity-70 shadow-[0_12px_32px_rgba(217,119,6,0.4)]"
-                    : "border-(--gold-500) bg-[linear-gradient(145deg,#1a9a68,#14714f)] shadow-[0_12px_32px_rgba(7,70,43,0.3)] hover:-translate-y-1 hover:shadow-[0_16px_36px_rgba(7,70,43,0.35)]"
+                ? "scale-110 border-red-400 bg-[linear-gradient(145deg,#dc2626,#991b1b)] shadow-[0_12px_32px_rgba(220,38,38,0.4)]"
+                : recordingState === "processing"
+                  ? "cursor-wait border-amber-400 bg-[linear-gradient(145deg,#d97706,#92400e)] opacity-70 shadow-[0_12px_32px_rgba(217,119,6,0.4)]"
+                  : "border-(--gold-500) bg-[linear-gradient(145deg,#1a9a68,#14714f)] shadow-[0_12px_32px_rgba(7,70,43,0.3)] hover:-translate-y-1 hover:shadow-[0_16px_36px_rgba(7,70,43,0.35)]"
                 }`}
             >
               {recordingState === "recording" && (
@@ -806,7 +812,7 @@ function OutputScreen({
           className="flex h-20 w-20 items-center justify-center rounded-full border-2 border-(--gold-500) bg-[linear-gradient(145deg,#1a9a68,#14714f)] shadow-[0_12px_32px_rgba(7,70,43,0.3)] transition-all hover:-translate-y-1 hover:shadow-[0_16px_36px_rgba(7,70,43,0.35)] disabled:border-slate-300 disabled:bg-slate-200 disabled:shadow-none"
         >
           <Speech size={36} color="white" strokeWidth={1.5} />
-        </button> }
+        </button>}
       </div>
 
       <div className="mt-auto p-3">
@@ -831,7 +837,7 @@ export default function PictogramPage() {
     speak(node.label, { rate: 0.9, pitch: 1 });
     const newTrail = [...trail, node];
     setTrail(newTrail);
-    
+
     // Auto-navigate when there are no more options to choose from
     const newIsLeaf = !node.children || node.children.length === 0;
     if (newIsLeaf) {
