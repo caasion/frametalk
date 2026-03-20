@@ -22,7 +22,7 @@ export async function GET(req: NextRequest) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          inputs: prompt,
+          inputs: `do not include any text in the image. ${prompt}`,
           parameters: { num_inference_steps: 8 },
         }),
         signal: AbortSignal.timeout(55000),
